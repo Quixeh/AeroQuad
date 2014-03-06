@@ -1374,6 +1374,7 @@ void setup() {
 
   #if defined(MAX7456_OSD)
     initializeSPI();
+    delay(100);
     initializeOSD();
   #endif
   
@@ -1423,13 +1424,15 @@ void process100HzTask() {
   calculateKinematics(gyroRate[XAXIS], gyroRate[YAXIS], gyroRate[ZAXIS], filteredAccel[XAXIS], filteredAccel[YAXIS], filteredAccel[ZAXIS], G_Dt);
   
   #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
-    zVelocity = (filteredAccel[ZAXIS] * (1 - accelOneG * invSqrt(isq(filteredAccel[XAXIS]) + isq(filteredAccel[YAXIS]) + isq(filteredAccel[ZAXIS])))) - runTimeAccelBias[ZAXIS] - runtimeZBias;
+    zVelocity = (filteredAccel[ZAXIS] * (1 - accelOneG * invSqrt(fsq(filteredAccel[XAXIS]) + fsq(filteredAccel[YAXIS]) + fsq(filteredAccel[ZAXIS])))) - runTimeAccelBias[ZAXIS] - runtimeZBias;
     if (!runtimaZBiasInitialized) {
-      runtimeZBias = (filteredAccel[ZAXIS] * (1 - accelOneG * invSqrt(isq(filteredAccel[XAXIS]) + isq(filteredAccel[YAXIS]) + isq(filteredAccel[ZAXIS])))) - runTimeAccelBias[ZAXIS];
+      runtimeZBias = (filteredAccel[ZAXIS] * (1 - accelOneG * invSqrt(fsq(filteredAccel[XAXIS]) + fsq(filteredAccel[YAXIS]) + fsq(filteredAccel[ZAXIS])))) - runTimeAccelBias[ZAXIS];
       runtimaZBiasInitialized = true;
     }
     estimatedZVelocity += zVelocity;
+    // logger.log(currentTime, DataLogger::zVelocity, zVelocity);
     estimatedZVelocity = (velocityCompFilter1 * zVelocity) + (velocityCompFilter2 * estimatedZVelocity);
+    // logger.log(currentTime, DataLogger::estimatedZVelocity, estimatedZVelocity);
   #endif    
 
   #if defined(AltitudeHoldBaro)

@@ -26,47 +26,82 @@
 
 
 
-
-#if defined (AltitudeHoldBaro) || defined (AltitudeHoldRangeFinder)
-  boolean isPositionHoldEnabledByUser() {
-    #if defined (UseGPSNavigator)
-      if ((receiverCommand[AUX1] < 1750) || (receiverCommand[AUX2] < 1750)) {
-        return true;
-      }
-      return false;
-    #else
-      if (receiverCommand[AUX1] < 1750) {
-        return true;
-      }
-      return false;
-    #endif
-  }
-#endif
-
 #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
   void processAltitudeHoldStateFromReceiverCommand() {
-    if (isPositionHoldEnabledByUser()) {
-      if (altitudeHoldState != ALTPANIC ) {  // check for special condition with manditory override of Altitude hold
-        if (!isAltitudeHoldInitialized) {
-          #if defined AltitudeHoldBaro
-            baroAltitudeToHoldTarget = getBaroAltitude();
-            PID[BARO_ALTITUDE_HOLD_PID_IDX].integratedError = 0;
-            PID[BARO_ALTITUDE_HOLD_PID_IDX].lastError = baroAltitudeToHoldTarget;
-          #endif
-          #if defined AltitudeHoldRangeFinder
-            sonarAltitudeToHoldTarget = rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
-            PID[SONAR_ALTITUDE_HOLD_PID_IDX].integratedError = 0;
-            PID[SONAR_ALTITUDE_HOLD_PID_IDX].lastError = sonarAltitudeToHoldTarget;
-          #endif
-          altitudeHoldThrottle = receiverCommand[THROTTLE];
-          isAltitudeHoldInitialized = true;
-        }
-        altitudeHoldState = ON;
+
+    //  Figure out desired altitude control mode based on receiver commands.
+    //  AUX1 chooses the altitude control mode (off, barometer-based, or rangefinder-based (if enabled))
+    //  Selecting position-hold (AUX2) or auto-landing (AUX3) also requests barometer-based altitude
+    //  control, but only if AUX1 is off.
+    //
+    AltitudeHoldMode_t switchSetting = ALT_OFF;
+    #if defined AltitudeHoldRangeFinder
+      if (receiverCommand[AUX1] < 1750)
+        switchSetting = ALT_SONAR;
+    #endif
+    if (receiverCommand[AUX1] < 1250)
+      switchSetting = ALT_BARO;
+    #if defined (UseGPSNavigator)
+      //  Selecting position hold implies altitude hold.
+      if (receiverCommand[AUX2] < 1750 && ALT_OFF == switchSetting)
+        switchSetting = ALT_BARO;
+    #endif
+    #if defined (AutoLanding)
+      //  Selecting autolanding implies altitude hold.
+      if (receiverCommand[AUX3] < 1750 && ALT_OFF == switchSetting)
+        switchSetting = ALT_BARO;
+    #endif
+
+    //  If desired mode is different from the current mode, change the current mode.
+    //
+    if (altitudeHoldMode != switchSetting) {
+      switch (switchSetting) {
+        case ALT_OFF:
+          //  Turn altitude mode off and/or reset from a panic state.
+          altitudeHoldMode = ALT_OFF;
+          break;
+        case ALT_BARO:
+          //  Initialize altitude hold using barometer, but only if we're not panicked.
+          if (ALT_PANIC != altitudeHoldMode) {
+            altitudeHoldMode = ALT_BARO;
+            altitudeToHoldTarget = 2.0 + getBaroAltitude();
+            logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
+            altitudeHoldThrottle = receiverCommand[THROTTLE];
+            altitudeHoldThrottleCorrection = 0;
+            altitudeHoldThrottleCorrectionSmoothed = 0.0;
+
+            //  Reach inside the PID to reset it into a clean state.  Yuk.
+            PID[ALTITUDE_HOLD_SPEED_PID_IDX].previousPIDTime = currentTime - 0.020;
+            PID[ALTITUDE_HOLD_SPEED_PID_IDX].integratedError = 0;
+            PID[ALTITUDE_HOLD_SPEED_PID_IDX].lastError = altitudeToHoldTarget;
+            PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].previousPIDTime = currentTime - 0.020;
+            PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].integratedError = 0;
+            PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].lastError = 0.0;
+          }
+          break;
+        case ALT_SONAR:
+          //  Initialize altitude hold using range finder, but only if we're not panicked.
+          if (ALT_PANIC != altitudeHoldMode) {
+            altitudeHoldMode = ALT_SONAR;
+            altitudeToHoldTarget = 2.0 + rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
+            logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
+            altitudeHoldThrottle = receiverCommand[THROTTLE];
+            altitudeHoldThrottleCorrection = 0;
+            altitudeHoldThrottleCorrectionSmoothed = 0.0;
+
+            //  Reach inside the PIDs to reset it into a clean state.  Yuk.
+            PID[ALTITUDE_HOLD_SPEED_PID_IDX].previousPIDTime = currentTime - 0.020;
+            PID[ALTITUDE_HOLD_SPEED_PID_IDX].integratedError = 0;
+            PID[ALTITUDE_HOLD_SPEED_PID_IDX].lastError = altitudeToHoldTarget;
+            PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].previousPIDTime = currentTime - 0.020;
+            PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].integratedError = 0;
+            PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].lastError = 0.0;
+          }
+          break;
+        case ALT_PANIC:
+          ; //  Not selectable by switches.
       }
-    } 
-    else {
-      isAltitudeHoldInitialized = false;
-      altitudeHoldState = OFF;
+      logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
     }
   }
 #endif
@@ -75,40 +110,18 @@
 #if defined (AutoLanding)
   void processAutoLandingStateFromReceiverCommand() {
     if (receiverCommand[AUX3] < 1750) {
-      if (altitudeHoldState != ALTPANIC ) {  // check for special condition with manditory override of Altitude hold
-        if (isAutoLandingInitialized) {
+      if (altitudeHoldMode != ALT_PANIC ) {  // check for special condition with manditory override of Altitude hold
+        if (!isAutoLandingInitialized) {
           autoLandingState = BARO_AUTO_DESCENT_STATE;
-          #if defined AltitudeHoldBaro
-            baroAltitudeToHoldTarget = getBaroAltitude();
-            PID[BARO_ALTITUDE_HOLD_PID_IDX].integratedError = 0;
-            PID[BARO_ALTITUDE_HOLD_PID_IDX].lastError = baroAltitudeToHoldTarget;
-          #endif
-          #if defined AltitudeHoldRangeFinder
-            sonarAltitudeToHoldTarget = rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
-            PID[SONAR_ALTITUDE_HOLD_PID_IDX].integratedError = 0;
-            PID[SONAR_ALTITUDE_HOLD_PID_IDX].lastError = sonarAltitudeToHoldTarget;
-          #endif
-          altitudeHoldThrottle = receiverCommand[THROTTLE];
+          autoLandingThrottleCorrection = 0;
           isAutoLandingInitialized = true;
         }
-        altitudeHoldState = ON;
       }
     }
     else {
       autoLandingState = OFF;
       autoLandingThrottleCorrection = 0;
       isAutoLandingInitialized = false;
-      #if defined (UseGPSNavigator)
-        if ((receiverCommand[AUX1] > 1750) && (receiverCommand[AUX2] > 1750)) {
-          altitudeHoldState = OFF;
-          isAltitudeHoldInitialized = false;
-        }
-      #else
-        if (receiverCommand[AUX1] > 1750) {
-          altitudeHoldState = OFF;
-          isAltitudeHoldInitialized = false;
-        }
-      #endif
     }
   }
 #endif

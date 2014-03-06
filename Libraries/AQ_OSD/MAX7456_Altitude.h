@@ -27,9 +27,9 @@
 
 int lastAltitude     = 12345;     // bogus initial values to force update
 int lastHoldAltitude = 12345;
-byte lastHoldState   = 6;
+AltitudeHoldMode_t lastHoldState   = ALT_OFF;
 
-void displayAltitude(float readedAltitude, float desiredAltitudeToKeep, boolean altHoldState) {
+void displayAltitude(float readedAltitude, float desiredAltitudeToKeep, AltitudeHoldMode_t altHoldState) {
   #ifdef USUnits
     int currentAltitude = readedAltitude*3.281;
     int currentHoldAltitude = desiredAltitudeToKeep*3.281;
@@ -41,16 +41,17 @@ void displayAltitude(float readedAltitude, float desiredAltitudeToKeep, boolean 
 
   if ( lastAltitude != currentAltitude ) {
     #ifdef USUnits
-      snprintf(buf,7,"\011%4df",currentAltitude);
+      snprintf(buf, sizeof(buf), "\011%4df", currentAltitude);
     #else
       if (abs(currentAltitude)<100) {
-        snprintf(buf,7,"\011%c%1d.%1dm",currentAltitude < 0 ? '-' : ' ', abs(currentAltitude/10),abs(currentAltitude%10));
+        // snprintf(buf, sizeof(buf), "\011%c%1d.%1dm", currentAltitude < 0 ? '-' : ' ', abs(currentAltitude/10),abs(currentAltitude%10));
+        snprintf(buf, sizeof(buf), "\011% 5.1fm", readedAltitude);
       }
       else {
-        snprintf(buf,7,"\011%4dm",currentAltitude/10);
+        snprintf(buf, sizeof(buf), "\011%4.0fm", readedAltitude);
       }
     #endif
-    writeChars( buf, 6, 0, ALTITUDE_ROW, ALTITUDE_COL );
+    writeChars(buf, 6, 0, ALTITUDE_ROW, ALTITUDE_COL);
     lastAltitude = currentAltitude;
   }
 
@@ -59,44 +60,41 @@ void displayAltitude(float readedAltitude, float desiredAltitudeToKeep, boolean 
   // - show "panic" if 'paniced' out
   boolean isWriteNeeded = false;
   switch (altHoldState) {
-  case OFF:
-    if (lastHoldState != OFF) {
-      lastHoldState = OFF;
-      memset(buf,0,6);
+  case ALT_OFF:
+  case ALT_SONAR:
+    if (lastHoldState != altHoldState) {
+      memset(buf, 0, sizeof(buf));
       isWriteNeeded = true;
     }
     break;
-  case ON:
-    if ((lastHoldState != ON) || (lastHoldAltitude != currentHoldAltitude)) {
-      lastHoldState = ON;
-      lastHoldAltitude=currentHoldAltitude;
+  case ALT_BARO:
+    if ((lastHoldState != altHoldState) || (lastHoldAltitude != currentHoldAltitude)) {
+      lastHoldState = altHoldState;
       #ifdef USUnits
-        snprintf(buf,7,"\12%4df",currentHoldAltitude);
+        snprintf(buf, sizeof(buf), "\012%4df", currentHoldAltitude);
       #else
         if (abs(currentHoldAltitude)<100) {
-          snprintf(buf,7,"\012%c%1d.%1dm", currentHoldAltitude < 0 ? '-' : ' ',abs(currentHoldAltitude/10),abs(currentHoldAltitude%10));
+          snprintf(buf, sizeof(buf), "\012% 5.1fm", readedAltitude);
         }
         else {
-          snprintf(buf,7,"\012%4dm",currentHoldAltitude/10);
+          snprintf(buf, sizeof(buf), "\012%4.0fm", readedAltitude);
         }
       #endif
       isWriteNeeded = true;
     }
     break;
-  case ALTPANIC:
-    if (lastHoldState != ALTPANIC) {
-      lastHoldState = ALTPANIC;
-      snprintf(buf,7,"\12panic");
+  case ALT_PANIC:
+    if (lastHoldState != altHoldState) {
+      snprintf(buf, sizeof(buf), "\012panic");
       isWriteNeeded = true;
     }
     break;
   }
+  lastHoldState = altHoldState;
 
   if (isWriteNeeded) {
-    writeChars( buf, 6, 0, ALTITUDE_ROW, ALTITUDE_COL+6 );
+    writeChars(buf, 6, 0, ALTITUDE_ROW, ALTITUDE_COL+6 );
   }
 }
 
 #endif  // #define _AQ_OSD_MAX7456_ALTITUDE_H_
-
-

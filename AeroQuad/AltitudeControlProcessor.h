@@ -49,66 +49,76 @@ void processAltitudeHold()
   // Thanks to Sherbakov for his work in Z Axis dampening
   // http://aeroquad.com/showthread.php?359-Stable-flight-logic...&p=10325&viewfull=1#post10325
 
-  if (altitudeHoldState == ON) {
-    int altitudeHoldThrottleCorrection = INVALID_THROTTLE_CORRECTION;
-    // computer altitude error!
+  if (ALT_BARO == altitudeHoldMode || ALT_SONAR == altitudeHoldMode) {
+    float altitude = getBaroAltitude();
+    float speed = baroAltitudeRate;     //  Vertical speed.
+
     #if defined AltitudeHoldRangeFinder
-      if (isOnRangerRange(rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX])) {
-        if (sonarAltitudeToHoldTarget == INVALID_RANGE) {
-          sonarAltitudeToHoldTarget = rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
-        }
-        altitudeHoldThrottleCorrection = updatePID(sonarAltitudeToHoldTarget, rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX], &PID[SONAR_ALTITUDE_HOLD_PID_IDX]);
-        altitudeHoldThrottleCorrection = constrain(altitudeHoldThrottleCorrection, minThrottleAdjust, maxThrottleAdjust);
+      if (ALT_SONAR == altitudeHoldMode) {
+        altitude = rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
+        speed = rangeFinderRate[ALTITUDE_RANGE_FINDER_INDEX];
       }
-    #endif
-    #if defined AltitudeHoldBaro
-      if (altitudeHoldThrottleCorrection == INVALID_THROTTLE_CORRECTION) {
-        altitudeHoldThrottleCorrection = updatePID(baroAltitudeToHoldTarget, getBaroAltitude(), &PID[BARO_ALTITUDE_HOLD_PID_IDX]);
-        altitudeHoldThrottleCorrection = constrain(altitudeHoldThrottleCorrection, minThrottleAdjust, maxThrottleAdjust);
-      }
-    #endif        
-    if (altitudeHoldThrottleCorrection == INVALID_THROTTLE_CORRECTION) {
-      throttle = receiverCommand[THROTTLE];
-      return;
-    }
-    
-    // ZDAMPENING COMPUTATIONS
-    #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
-      float zDampeningThrottleCorrection = -updatePID(0.0, estimatedZVelocity, &PID[ZDAMPENING_PID_IDX]);
-      zDampeningThrottleCorrection = constrain(zDampeningThrottleCorrection, minThrottleAdjust, maxThrottleAdjust);
     #endif
 
-    
+    // #if defined AltitudeHoldRangeFinder
+      // if (isOnRangerRange(rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX])) {
+        // if (sonarAltitudeToHoldTarget == INVALID_RANGE) {
+          // sonarAltitudeToHoldTarget = rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
+        // }
+        // altitudeHoldThrottleCorrection = updatePID(sonarAltitudeToHoldTarget, rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX], &PID[SONAR_ALTITUDE_HOLD_PID_IDX]);
+        // altitudeHoldThrottleCorrection = constrain(altitudeHoldThrottleCorrection, minThrottleAdjust, maxThrottleAdjust);
+      // }
+    // #endif
+
+    float PIDComponents[3];
+    simulatePID(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX], PIDComponents);
+    logger.log(currentTime, DataLogger::altitudeSpeedPID_Pr, PIDComponents[0]);
+    logger.log(currentTime, DataLogger::altitudeSpeedPID_Ir, PIDComponents[1]);
+
+    targetVerticalSpeed = updatePID(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX]);
+    logger.log(currentTime, DataLogger::targetVerticalSpeed, targetVerticalSpeed);
+
+    simulatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
+    logger.log(currentTime, DataLogger::altitudeThrottlePID_Pr, PIDComponents[0]);
+    logger.log(currentTime, DataLogger::altitudeThrottlePID_Ir, PIDComponents[1]);
+
+    altitudeHoldThrottleCorrectionRaw = updatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX]);
+    altitudeHoldThrottleCorrectionSmoothed = filterSmooth(altitudeHoldThrottleCorrectionRaw,
+                                                          altitudeHoldThrottleCorrectionSmoothed,
+                                                          altitudeHoldThrottleSmoothingFactor);
+    altitudeHoldThrottleCorrection = constrain((int)altitudeHoldThrottleCorrectionSmoothed, minThrottleAdjust, maxThrottleAdjust);
+    logger.log(currentTime, DataLogger::altitudeHoldThrottleCorrection, altitudeHoldThrottleCorrection);
+
     if (abs(altitudeHoldThrottle - receiverCommand[THROTTLE]) > altitudeHoldPanicStickMovement) {
-      altitudeHoldState = ALTPANIC; // too rapid of stick movement so PANIC out of ALTHOLD
-    } 
-    else {
-      
-      if (receiverCommand[THROTTLE] > (altitudeHoldThrottle + altitudeHoldBump)) { // AKA changed to use holdThrottle + ALTBUMP - (was MAXCHECK) above 1900
-        #if defined AltitudeHoldBaro
-          baroAltitudeToHoldTarget += ALTITUDE_BUMP_SPEED;
-        #endif
-        #if defined AltitudeHoldRangeFinder
-          float newalt = sonarAltitudeToHoldTarget + ALTITUDE_BUMP_SPEED;
-          if (isOnRangerRange(newalt)) {
-            sonarAltitudeToHoldTarget = newalt;
-          }
-        #endif
-      }
-      
-      if (receiverCommand[THROTTLE] < (altitudeHoldThrottle - altitudeHoldBump)) { // AKA change to use holdThorrle - ALTBUMP - (was MINCHECK) below 1100
-        #if defined AltitudeHoldBaro
-          baroAltitudeToHoldTarget -= ALTITUDE_BUMP_SPEED;
-        #endif
-        #if defined AltitudeHoldRangeFinder
-          float newalt = sonarAltitudeToHoldTarget - ALTITUDE_BUMP_SPEED;
-          if (isOnRangerRange(newalt)) {
-            sonarAltitudeToHoldTarget = newalt;
-          }
-        #endif
-      }
+      altitudeHoldMode = ALT_PANIC; // too rapid of stick movement so PANIC out of ALTHOLD
+      altitudeHoldThrottleCorrection = 0;
+      logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
     }
-    throttle = altitudeHoldThrottle + altitudeHoldThrottleCorrection + zDampeningThrottleCorrection;
+    else {
+
+      float altitudeBump = 0.0;
+      if (receiverCommand[THROTTLE] > (altitudeHoldThrottle + altitudeHoldBump))
+        altitudeBump = ALTITUDE_BUMP_SPEED;
+      else if (receiverCommand[THROTTLE] < (altitudeHoldThrottle - altitudeHoldBump))
+        altitudeBump = -ALTITUDE_BUMP_SPEED;
+
+      #if defined AltitudeHoldBaro
+        if (ALT_BARO == altitudeHoldMode) {
+          altitudeToHoldTarget += altitudeBump;
+          logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
+        }
+      #endif
+      #if defined AltitudeHoldRangeFinder
+        if (ALT_SONAR == altitudeHoldMode) {
+          float newalt = altitudeToHoldTarget + altitudeBump;
+          if (isOnRangerRange(newalt)) {
+            altitudeToHoldTarget = newalt;
+            logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
+          }
+        }
+      #endif
+    }
+    throttle = altitudeHoldThrottle + altitudeHoldThrottleCorrection;
   }
   else {
     throttle = receiverCommand[THROTTLE];

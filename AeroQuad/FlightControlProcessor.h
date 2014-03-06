@@ -107,15 +107,8 @@ void processCalibrateESC()
     }
     else {
       #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
-        if (altitudeHoldState == ON) {
-          #if defined AltitudeHoldBaro
-            baroAltitudeToHoldTarget -= 0.01;
-          #endif
-          #if defined AltitudeHoldRangeFinder
-            if (sonarAltitudeToHoldTarget != INVALID_RANGE) {
-              sonarAltitudeToHoldTarget -= 0.01;
-            }
-          #endif
+        if (ALT_BARO == altitudeHoldMode || ALT_SONAR == altitudeHoldMode) {
+          altitudeToHoldTarget -= 0.01;
         }
         else {
       #endif
@@ -153,22 +146,20 @@ void processCalibrateESC()
     if (autoLandingState != OFF) {   
 
       if (autoLandingState == BARO_AUTO_DESCENT_STATE) {
-        baroAltitudeToHoldTarget -= BARO_AUTO_LANDING_DESCENT_SPEED;
+        altitudeToHoldTarget -= BARO_AUTO_LANDING_DESCENT_SPEED;
         if (isOnRangerRange(rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX])) { 
           autoLandingState = SONAR_AUTO_DESCENT_STATE;
         }
       }
       else if (autoLandingState == SONAR_AUTO_DESCENT_STATE) {
-        baroAltitudeToHoldTarget -= BARO_AUTO_LANDING_DESCENT_SPEED;
-        sonarAltitudeToHoldTarget -= SONAR_AUTO_LANDING_DESCENT_SPEED;
+        altitudeToHoldTarget -= SONAR_AUTO_LANDING_DESCENT_SPEED;
         if (rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX] < 0.5) {
           autoLandingState = MOTOR_AUTO_DESCENT_STATE;
         }
       }
       else {
         autoLandingThrottleCorrection -= 1;
-        baroAltitudeToHoldTarget -= BARO_AUTO_LANDING_DESCENT_SPEED;
-        sonarAltitudeToHoldTarget -= SONAR_AUTO_LANDING_DESCENT_SPEED;
+        altitudeToHoldTarget -= BARO_AUTO_LANDING_DESCENT_SPEED;
 
         if (((throttle + autoLandingThrottleCorrection) < 1000) || (rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX] < 0.20)) {
           commandAllMotors(MINCOMMAND);
@@ -343,6 +334,26 @@ void processFlightControl() {
   if (motorArmed == ON && safetyCheck == ON) {
     writeMotors();
   }
+
+  //  Start logging on AUX3 command.
+  if (receiverCommand[AUX3] > 1500 && previousAUX3 <= 1500 && currentTime > 3500000) {
+    logger.clear();
+    logger.write_enable();
+    //  Log some interesting constants, just once.
+    logger.log(currentTime, DataLogger::baroSmoothFactor, baroSmoothFactor);
+    logger.log(currentTime, DataLogger::altitudeSpeedPID_P, PID[ALTITUDE_HOLD_SPEED_PID_IDX].P);
+    logger.log(currentTime, DataLogger::altitudeSpeedPID_I, PID[ALTITUDE_HOLD_SPEED_PID_IDX].I);
+    logger.log(currentTime, DataLogger::altitudeSpeedPID_D, PID[ALTITUDE_HOLD_SPEED_PID_IDX].D);
+    logger.log(currentTime, DataLogger::altitudeThrottlePID_P, PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].P);
+    logger.log(currentTime, DataLogger::altitudeThrottlePID_I, PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].I);
+    logger.log(currentTime, DataLogger::altitudeThrottlePID_D, PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].D);
+    logger.log(currentTime, DataLogger::altitudeHoldThrottleSmoothingFactor, altitudeHoldThrottleSmoothingFactor);
+
+    //  Log the current state of these now since they're only logged when they change.
+    logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
+    logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
+  }
+  previousAUX3 = receiverCommand[AUX3];
 }
 
 #endif //#define _AQ_PROCESS_FLIGHT_CONTROL_H_

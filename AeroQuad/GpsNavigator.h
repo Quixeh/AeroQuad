@@ -301,7 +301,7 @@ void initHomeBase() {
 //        sonarAltitudeToHoldTarget += 0.05;
 //      }
 //    #endif
-    baroAltitudeToHoldTarget = missionPositionToReach.altitude;
+    altitudeToHoldTarget = missionPositionToReach.altitude;
   }
   
   /**

@@ -25,6 +25,8 @@
 #include "GlobalDefined.h"
 
 float baroAltitude      = 0.0; 
+unsigned long baroAltitudeAsof = 0;  // Time when baroAltitude last set.
+float baroAltitudeRate  = 0.0; // Altitude rate of change.
 float baroRawAltitude   = 0.0;
 float baroGroundAltitude = 0.0;
 float baroSmoothFactor   = 0.02;

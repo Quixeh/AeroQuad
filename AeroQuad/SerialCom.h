@@ -30,6 +30,7 @@
 #define _AQ_SERIAL_COMM_
 
 char queryType = 'X';
+unsigned int records_read = 0;
 
 void initCommunication() {
   // do nothing here for now
@@ -228,6 +229,14 @@ void readSerialCommand() {
           skipSerialValues(13);
         #endif
       #endif
+      break;
+
+    //  Set Zan's altitude hold tuning values.
+    case 'S': // Range Finder
+        baroSmoothFactor = readFloatSerial();
+        PID[BARO_ALTITUDE_HOLD_PID_IDX].P = readFloatSerial();
+        PID[ZDAMPENING_PID_IDX].P = readFloatSerial();
+        altitudeHoldThrottleSmoothingFactor = readFloatSerial();
       break;
 
     case 'U': // Range Finder
@@ -590,7 +599,7 @@ void sendSerialTelemetry() {
       #elif defined AltitudeHoldRangeFinder
         PrintValueComma(rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX] != INVALID_RANGE ? rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX] : 0.0);
       #endif
-      PrintValueComma((int)altitudeHoldState);
+      PrintValueComma((ALT_OFF == altitudeHoldMode ? 0 : 1));
     #else
       PrintValueComma(0);
       PrintValueComma(0);
@@ -644,6 +653,30 @@ void sendSerialTelemetry() {
     SERIAL_PRINTLN();
     queryType = 'X';
     break;
+
+  case 'w': { // Zan's ad-hoc telemetry.
+    char buf[128];
+    int i;
+    bool got_data = true;
+
+    // PrintValueComma(logger.get_writepos());
+    for (i=0; i<8 && got_data; ++i) {
+      got_data = logger.read_next(buf, sizeof(buf));
+      if (got_data) {
+        SERIAL_PRINTLN(buf);
+        ++records_read;
+      }
+    }
+    if (!got_data) {
+
+      snprintf(buf, sizeof(buf), "// end, %d records", records_read);
+      SERIAL_PRINTLN(buf);
+      records_read = 0;
+      queryType = 'X';
+    }
+    break;
+  };
+
   case 'y': // send GPS info
     #if defined (UseGPS)
       PrintValueComma(gpsData.state);
@@ -670,7 +703,10 @@ void sendSerialTelemetry() {
       PrintValueComma(0);
     #endif 
     #if defined (AltitudeHoldRangeFinder) 
-      SERIAL_PRINTLN(rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX]);
+      if (ALT_OFF == altitudeHoldMode)
+        SERIAL_PRINTLN(rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX]);
+      else
+        SERIAL_PRINTLN(altitudeToHoldTarget);
     #else
       SERIAL_PRINTLN(0); 
     #endif 

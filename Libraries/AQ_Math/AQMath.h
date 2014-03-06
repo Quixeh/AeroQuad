@@ -174,5 +174,6 @@ boolean isSwitched(float previousError, float currentError);
 
 float invSqrt(float x);
 int32_t  isq(int32_t  x);
+float  fsq(float x);
 
 #endif

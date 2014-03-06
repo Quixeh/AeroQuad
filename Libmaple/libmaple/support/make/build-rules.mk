@@ -1,5 +1,5 @@
 # Useful tools
-CC       := arm-none-eabi-gcc
+CC       ?= arm-none-eabi-gcc
 CXX      := arm-none-eabi-g++
 LD       := arm-none-eabi-ld -v
 AR       := arm-none-eabi-ar

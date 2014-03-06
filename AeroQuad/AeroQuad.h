@@ -29,6 +29,7 @@
 #include "GpsDataType.h"
 #include "AQMath.h"
 #include "Receiver.h"
+#include "DataLogger.h"
 
 // Flight Software Version
 #define SOFTWARE_VERSION 3.2
@@ -78,7 +79,7 @@ float rotationSpeedFactor = 1.0;
 
 // main loop time variable
 unsigned long previousTime = 0;
-unsigned long currentTime = 0;
+unsigned long currentTime = 0;  //  Microsesonds (since boot?)
 unsigned long deltaTime = 0;
 // sub loop time variable
 unsigned long oneHZpreviousTime = 0;
@@ -88,6 +89,7 @@ unsigned long lowPriorityTenHZpreviousTime2 = 0;
 unsigned long fiftyHZpreviousTime = 0;
 unsigned long hundredHZpreviousTime = 0;
 
+DataLogger logger;
 
 
 //////////////////////////////////////////////////////
@@ -169,13 +171,19 @@ void reportVehicleState();
  */
 #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
  // special state that allows immediate turn off of Altitude hold if large throttle changesa are made at the TX
-  byte altitudeHoldState = OFF;  // ON, OFF or ALTPANIC
+  typedef enum {
+    ALT_OFF,
+    ALT_PANIC,
+    ALT_BARO,
+    ALT_SONAR,
+  } AltitudeHoldMode_t;
+  AltitudeHoldMode_t altitudeHoldMode = ALT_OFF;
+
   int altitudeHoldBump = 90;
   int altitudeHoldPanicStickMovement = 250;
-  int minThrottleAdjust = -50;
-  int maxThrottleAdjust = 50;
+  int minThrottleAdjust = -150;
+  int maxThrottleAdjust = 150;
   int altitudeHoldThrottle = 1000;
-  boolean isAltitudeHoldInitialized = false;
   
   
   float velocityCompFilter1 = 1.0 / (1.0 + 0.3);
@@ -185,14 +193,17 @@ void reportVehicleState();
   float zVelocity = 0.0;
   float estimatedZVelocity = 0.0;
   float runtimeZBias = 0.0; 
-  float zDampeningThrottleCorrection = 0.0;
+  float previousAltitude = 0.0;
+  unsigned long previousAHTime = 0;
+  float targetVerticalSpeed = 0.0;
+  int altitudeHoldThrottleCorrection = 0;
+  float altitudeHoldThrottleCorrectionRaw = 0.0;
+  float altitudeHoldThrottleCorrectionSmoothed = 0.0;
+  float altitudeHoldThrottleSmoothingFactor = 0.20;
 
-  #if defined AltitudeHoldBaro
-    float baroAltitudeToHoldTarget = 0.0;
+  #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
+    float altitudeToHoldTarget = 0.0;
   #endif  
-  #if defined AltitudeHoldRangeFinder
-    float sonarAltitudeToHoldTarget = 0.0;
-  #endif
 #endif
 //////////////////////////////////////////////////////
 

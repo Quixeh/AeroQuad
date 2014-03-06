@@ -33,6 +33,8 @@
 #define LEFT_RANGE_FINDER_INDEX     4
 
 float rangeFinderRange[5]      = {-2,-2,-2,-2,-2};
+float rangeFinderRate[5]       = {-2,-2,-2,-2,-2};   // Rate of change.
+unsigned long rangeFinderAsof[5] = {0, 0, 0, 0, 0};  // Time of last measurement.
 
 float maxRangeFinderRange = 4.5;
 float minRangeFinderRange = 0.0;

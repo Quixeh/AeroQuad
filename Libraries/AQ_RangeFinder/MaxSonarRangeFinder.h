@@ -122,7 +122,13 @@ void updateRangeFinders() {
   
   if ((abs(range - lastRange[rangerToRead]) < SPIKE_FILTER_MARGIN) ||
       (abs(range * 1000.0 - rangeFinderRange[rangeFinders[rangerToRead].target]) < SPIKE_FILTER_MARGIN)) {
-    rangeFinderRange[rangeFinders[rangerToRead].target] = (float)range / 1000.0;
+    int target = rangeFinders[rangerToRead].target;
+    float newRange = (float)range / 1000.0;
+    rangeFinderRate[target] = (newRange - rangeFinderRange[target]) / (currentTime - rangeFinderAsof[target]) * 1000000.0;
+    // logger.log(currentTime, DataLogger::rangeFinderRate, rangeFinderRate[target]);
+    rangeFinderAsof[target] = currentTime;
+    rangeFinderRange[target] = newRange;
+    // logger.log(currentTime, DataLogger::rangeFinderRange, rangeFinderRange[target]);
   }
   lastRange[rangerToRead] = range;
  

@@ -381,7 +381,7 @@ void sendSerialSysStatus() {
     controlSensorEnabled |= (1<<11); // attitude stabilisation
   }
   #if defined(AltitudeHoldBaro) || defined(AltitudeHoldRangeFinder)
-    if (altitudeHoldState == ON) {
+    if (altitudeHoldMode == ALT_BARO || altitudeHoldMode == ALT_SONAR) {
       controlSensorEnabled |= (1<<13); // altitude control
     }
   #endif

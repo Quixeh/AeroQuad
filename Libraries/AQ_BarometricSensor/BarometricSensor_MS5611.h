@@ -214,11 +214,16 @@ void measureBaro() {
 }
 
 void measureBaroSum() {
+
+  // int cycleCount = (((currentTime / 1000000 / 2) % 2 ) ? 1 : 20);
+  int cycleCount = 1;
   // switch between pressure and temperature measurements
   if (isReadPressure) {
-    rawPressureSum += readRawPressure();
+    float rawPressure = readRawPressure();
+    // logger.log(currentTime, DataLogger::rawPressure, rawPressure);
+    rawPressureSum += rawPressure;
     rawPressureSumCount++;
-    if (pressureCount == 20) {
+    if (pressureCount >= cycleCount) {
       requestRawTemperature();
       pressureCount = 0;
       isReadPressure = false;
@@ -230,6 +235,7 @@ void measureBaroSum() {
   } 
   else { // select must equal TEMPERATURE
     readRawTemperature();
+    // logger.log(currentTime, DataLogger::rawTemperature, rawTemperature);
     requestRawPressure();
     isReadPressure = true;
   }
@@ -246,6 +252,7 @@ void evaluateBaroAltitude() {
   pressure = rawPressureSum / rawPressureSumCount;
 
   baroRawAltitude = 44330 * (1 - pow(pressure/101325.0, pressureFactor)); // returns absolute baroAltitude in meters
+  logger.log(currentTime, DataLogger::baroRawAltitude, baroRawAltitude - baroGroundAltitude);
   // use calculation below in case you need a smaller binary file for CPUs having just 32KB flash ROM
   // baroRawAltitude = (101325.0-pressure)/4096*346;
 
@@ -254,8 +261,13 @@ void evaluateBaroAltitude() {
     MS5611_first_read = false;
   } 
   else {
-    baroAltitude = filterSmooth(baroRawAltitude, baroAltitude, baroSmoothFactor);
+    float newBaroAltitude = filterSmooth(baroRawAltitude, baroAltitude, baroSmoothFactor);
+    baroAltitudeRate = (newBaroAltitude - baroAltitude) / (currentTime - baroAltitudeAsof) * 1000000.0;
+    logger.log(currentTime, DataLogger::baroAltitudeRate, baroAltitudeRate);
+    baroAltitude = newBaroAltitude;
+    baroAltitudeAsof = currentTime;
   }
+  logger.log(currentTime, DataLogger::baroAltitude, baroAltitude - baroGroundAltitude);
 
   rawPressureSum = 0.0;
   rawPressureSumCount = 0;

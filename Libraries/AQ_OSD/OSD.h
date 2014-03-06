@@ -25,7 +25,7 @@
   void displayVoltage(byte areMotorsArmed);
 #endif
 #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
-  void displayAltitude(float readedAltitude, float desiredAltitudeToKeep, boolean altitudeHoldState);
+  void displayAltitude(float readedAltitude, float desiredAltitudeToKeep, AltitudeHoldMode_t altitudeHoldState);
 #endif
 #ifdef HeadingMagHold
   void displayHeading(float currentHeading);

@@ -443,3 +443,6 @@ int32_t isq(int32_t  x) {
   return x * x;
 }
 
+float fsq(float x) {
+  return x * x;
+}

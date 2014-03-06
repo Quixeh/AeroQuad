@@ -51,7 +51,7 @@ void updateOSD() {
   if (OSDsched&0x02) {
     displayFlightTime(motorArmed);
     #if defined AltitudeHoldBaro
-      displayAltitude(getBaroAltitude(), baroAltitudeToHoldTarget, altitudeHoldState);
+      displayAltitude(getBaroAltitude(), altitudeToHoldTarget, altitudeHoldMode);
     #endif
     #ifdef HeadingMagHold
       displayHeading(trueNorthHeading);

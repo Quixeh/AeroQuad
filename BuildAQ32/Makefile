@@ -166,6 +166,7 @@ EXTRAINCDIRS += $(LIBDIR)/AQ_Accelerometer $(LIBDIR)/AQ_BarometricSensor $(LIBDI
  $(LIBDIR)/AQ_OSD  $(LIBDIR)/AQ_Platform_APM $(LIBDIR)/AQ_Platform_CHR6DM \
  $(LIBDIR)/AQ_Platform_MPU6000 $(LIBDIR)/AQ_Platform_Wii $(LIBDIR)/AQ_RangeFinder \
  $(LIBDIR)/AQ_Receiver $(LIBDIR)/AQ_SPI $(LIBDIR)/AQ_RSSI $(LIBDIR)/AQ_SoftModem \
+ $(LIBDIR)/AQ_DataLogger \
  $(LIBDIR)/AQ_RSCode
 
 
@@ -220,6 +221,7 @@ CPPSRC = $(TARGETSOURCE).cpp
 #CPPSRC += $(SRCDIR)/MS561101BA.cpp
 CPPSRC += $(MCDIR)/EEPROM.cpp 
 CPPSRC += $(LIBDIR)/AQ_I2C/Device_I2C.cpp
+CPPSRC += $(LIBDIR)/AQ_DataLogger/DataLogger.cpp
 #CPPSRC += $(LIBDIR)/AQ_Gps/TinyGPS.cpp
 CPPSRC += $(LIBDIR)/AQ_Math/AQMath.cpp
 SRC += $(MCDIR)/flash_stm32.c
@@ -482,7 +484,7 @@ DEBUG_HOST = localhost
 
 # Define programs and commands.
 SHELL = sh
-CC = $(BUILDPREFIX)-gcc
+CC ?= $(BUILDPREFIX)-gcc
 OBJCOPY = $(BUILDPREFIX)-objcopy
 OBJDUMP = $(BUILDPREFIX)-objdump
 SIZE = $(BUILDPREFIX)-size
@@ -765,7 +767,7 @@ ifeq ($(BUILDTYPE), STM32)
 $(shell mkdir -p $(OBJDIR)/$(SRCDIRAQ32) $(OBJDIR)/$(MCDIR) 2>/dev/null)
 endif
 #$(shell mkdir -p $(OBJDIR) $(OBJDIR)/$(SRCDIR) $(OBJDIR)/$(SRCDIRAQ32) $(OBJDIR)/$(MCDIR) $(OBJDIR)/arduinoXMega $(OBJDIR)/arduinoXMega/Libraries $(OBJDIR)/$(LIBDIR)  $(OBJDIR)/$(LIBDIR)/AQ_Gps $(OBJDIR)/$(LIBDIR)/AQ_I2C $(OBJDIR)/$(LIBDIR)/AQ_Math 2>/dev/null)
-$(shell mkdir -p $(OBJDIR) $(OBJDIR)/$(SRCDIR) $(OBJDIR)/$(LIBDIR)  $(OBJDIR)/$(LIBDIR)/AQ_Gps $(OBJDIR)/$(LIBDIR)/AQ_I2C $(OBJDIR)/$(LIBDIR)/AQ_Math 2>/dev/null)
+$(shell mkdir -p $(OBJDIR) $(OBJDIR)/$(SRCDIR) $(OBJDIR)/$(LIBDIR)  $(OBJDIR)/$(LIBDIR)/AQ_Gps $(OBJDIR)/$(LIBDIR)/AQ_I2C $(OBJDIR)/$(LIBDIR)/AQ_DataLogger $(OBJDIR)/$(LIBDIR)/AQ_Math 2>/dev/null)
 
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)

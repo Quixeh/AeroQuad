@@ -46,6 +46,9 @@ enum {
   LAST_PID_IDX  // keep this definition at the end of this enum
 };
 
+#define ALTITUDE_HOLD_SPEED_PID_IDX    BARO_ALTITUDE_HOLD_PID_IDX
+#define ALTITUDE_HOLD_THROTTLE_PID_IDX ZDAMPENING_PID_IDX
+
 //// PID Variables
 struct PIDdata {
   float P, I, D;
@@ -84,6 +87,29 @@ float updatePID(float targetPosition, float currentPosition, struct PIDdata *PID
   PIDparameters->lastError = currentPosition;
 
   return (PIDparameters->P * error) + (PIDparameters->I * PIDparameters->integratedError) + dTerm;
+}
+
+//  Without acually updating thePID, return the individual correction values for the P, I, and D components.
+void simulatePID(float targetPosition, float currentPosition, const struct PIDdata *PIDparameters, float components[3]) {
+
+  // AKA PID experiments
+  const float deltaPIDTime = (currentTime - PIDparameters->previousPIDTime) / 1000000.0;
+
+  float error = targetPosition - currentPosition;
+
+  float integratedError = PIDparameters->integratedError;
+  if (inFlight) {
+    integratedError += error * deltaPIDTime;
+  }
+  else {
+    integratedError = 0.0;
+  }
+  integratedError = constrain(PIDparameters->integratedError, -PIDparameters->windupGuard, PIDparameters->windupGuard);
+  float dTerm = PIDparameters->D * (currentPosition - PIDparameters->lastError) / (deltaPIDTime * 100); // dT fix from Honk
+
+  components[0] = PIDparameters->P * error;
+  components[1] = PIDparameters->I * integratedError;
+  components[2] = dTerm;
 }
 
 void zeroIntegralError() __attribute__ ((noinline));
