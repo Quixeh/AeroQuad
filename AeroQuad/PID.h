@@ -89,6 +89,38 @@ float updatePID(float targetPosition, float currentPosition, struct PIDdata *PID
   return (PIDparameters->P * error) + (PIDparameters->I * PIDparameters->integratedError) + dTerm;
 }
 
+
+//  Like updatePID, but the D term is based on rate of change of targetPosition.
+//
+float updatePIDAlternate(float targetPosition, float currentPosition, struct PIDdata *PIDparameters, float *cptr) {
+
+  // AKA PID experiments
+  const float deltaPIDTime = (currentTime - PIDparameters->previousPIDTime) / 1000000.0;
+  float comps[3];
+
+  if (!cptr)
+    cptr = comps;
+
+  PIDparameters->previousPIDTime = currentTime;  // AKA PID experiments
+  float error = targetPosition - currentPosition;
+
+  if (inFlight) {
+    PIDparameters->integratedError += error * deltaPIDTime;
+  }
+  else {
+    PIDparameters->integratedError = 0.0;
+  }
+  PIDparameters->integratedError = constrain(PIDparameters->integratedError, -PIDparameters->windupGuard, PIDparameters->windupGuard);
+
+  cptr[0] = PIDparameters->P * error;
+  cptr[1] = PIDparameters->I * PIDparameters->integratedError;
+  cptr[2] = PIDparameters->D * (targetPosition - PIDparameters->lastError) / (deltaPIDTime * 100); // dT fix from Honk
+  PIDparameters->lastError = targetPosition;
+
+  return cptr[0] + cptr[1] + cptr[2];
+}
+
+
 //  Without acually updating thePID, return the individual correction values for the P, I, and D components.
 void simulatePID(float targetPosition, float currentPosition, const struct PIDdata *PIDparameters, float components[3]) {
 

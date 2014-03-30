@@ -21,6 +21,7 @@
 #ifndef _AEROQUAD_ACCELEROMETER_MPU6000_COMMON_H_
 #define _AEROQUAD_ACCELEROMETER_MPU6000_COMMON_H_
 
+#include <stdio.h>
 #include <Platform_MPU6000.h>
 #include <Accelerometer.h>
 
@@ -48,7 +49,14 @@ void measureAccelSum() {
 
 void evaluateMetersPerSec() {
   for (byte axis = XAXIS; axis <= ZAXIS; axis++) {
-    meterPerSecSec[axis] = (accelSample[axis] / accelSampleCount) * accelScaleFactor[axis] + runTimeAccelBias[axis];
+    if (accelSampleCount)
+      meterPerSecSec[axis] = (accelSample[axis] / accelSampleCount) * accelScaleFactor[axis] + runTimeAccelBias[axis];
+    else {
+      meterPerSecSec[axis] = 0.0;
+      char buf[128];
+      snprintf(buf, sizeof(buf), "trap %s:%d", __FILE__, __LINE__);
+      logger.log(currentTime, DataLogger::string, buf);
+    }
   	accelSample[axis] = 0;
   }
   accelSampleCount = 0;
@@ -67,9 +75,14 @@ void computeAccelBias() {
   }
   accelSampleCount = 0;
 
+  accelOneGZan = sqrt(meterPerSecSec[XAXIS] * meterPerSecSec[XAXIS] + 
+                      meterPerSecSec[YAXIS] * meterPerSecSec[YAXIS] + 
+                      meterPerSecSec[ZAXIS] * meterPerSecSec[ZAXIS]);
   runTimeAccelBias[XAXIS] = -meterPerSecSec[XAXIS];
   runTimeAccelBias[YAXIS] = -meterPerSecSec[YAXIS];
-  runTimeAccelBias[ZAXIS] = -9.8065 - meterPerSecSec[ZAXIS];
+  // runTimeAccelBias[ZAXIS] = -9.8065 - meterPerSecSec[ZAXIS];
+  //  Ha!  One kg of force is 9.80665 N.  But average acceleratio at Earth's surface is 9.780327 m/s^2.
+  runTimeAccelBias[ZAXIS] = -9.780327 - meterPerSecSec[ZAXIS];
 
   accelOneG = abs(meterPerSecSec[ZAXIS] + runTimeAccelBias[ZAXIS]);
 }

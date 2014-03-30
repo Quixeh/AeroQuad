@@ -200,6 +200,10 @@ void calculateKinematics(float rollRate,          float pitchRate,    float yawR
              measuredMagX,      measuredMagY, measuredMagZ,
 		     G_Dt);
   eulerAngles();
+  logger.log(currentTime, DataLogger::q0, q0);
+  logger.log(currentTime, DataLogger::q1, q1);
+  logger.log(currentTime, DataLogger::q2, q2);
+  logger.log(currentTime, DataLogger::q3, q3);
 }
   
 float getGyroUnbias(byte axis) {

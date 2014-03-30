@@ -70,9 +70,15 @@ void measureGyroSum() {
 
 void evaluateGyroRate() {
   int gyroADC[3];
-  gyroADC[XAXIS] = (gyroSample[XAXIS] / gyroSampleCount) - gyroZero[XAXIS];
-  gyroADC[YAXIS] = gyroZero[YAXIS] - (gyroSample[YAXIS] / gyroSampleCount);
-  gyroADC[ZAXIS] = gyroZero[ZAXIS] - (gyroSample[ZAXIS] / gyroSampleCount);
+  if (gyroSampleCount) {
+    gyroADC[XAXIS] = (gyroSample[XAXIS] / gyroSampleCount) - gyroZero[XAXIS];
+    gyroADC[YAXIS] = gyroZero[YAXIS] - (gyroSample[YAXIS] / gyroSampleCount);
+    gyroADC[ZAXIS] = gyroZero[ZAXIS] - (gyroSample[ZAXIS] / gyroSampleCount);
+  } else {
+    gyroADC[XAXIS] = 0.0;
+    gyroADC[YAXIS] = 0.0;
+    gyroADC[ZAXIS] = 0.0;
+  }
 
   gyroSample[XAXIS] = 0;
   gyroSample[YAXIS] = 0;

@@ -186,19 +186,18 @@ void reportVehicleState();
   int altitudeHoldThrottle = 1000;
   
   
-  float velocityCompFilter1 = 1.0 / (1.0 + 0.3);
-  float velocityCompFilter2 = 1 - velocityCompFilter1;
+  float verticalSpeedUncorrected = 0.0;  // Integrated acceleration in up direction.
+  float verticalSpeedCorrection = 0.0;  // Smoothed comparison of verticalSpeedUncorrected with rate of change of smoothed barometer.
+  float verticalSpeed = 0.0;             //  Adjusted verticalSpeedUncorrected.
 
-  boolean runtimaZBiasInitialized = false;  
-  float zVelocity = 0.0;
-  float estimatedZVelocity = 0.0;
-  float runtimeZBias = 0.0; 
+  float altitudeUncorrected = 0.0;
+  float altitudeCorrection = 0.0;
+  float altitude = 0.0;
+
   float previousAltitude = 0.0;
   unsigned long previousAHTime = 0;
   float targetVerticalSpeed = 0.0;
   int altitudeHoldThrottleCorrection = 0;
-  float altitudeHoldThrottleCorrectionRaw = 0.0;
-  float altitudeHoldThrottleCorrectionSmoothed = 0.0;
   float altitudeHoldThrottleSmoothingFactor = 0.20;
 
   #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder

@@ -129,6 +129,10 @@ void argUpdate(float gx, float gy, float gz, float ax, float ay, float az, float
   q1 = q1 / norm;
   q2 = q2 / norm;
   q3 = q3 / norm;
+
+  down[0] = 2 * q1 * q3 - 2 * q0 * q2;
+  down[1] = 2 * q2 * q3 + 2 * q0 * q1;
+  down[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 }
   
 void eulerAngles()
@@ -172,6 +176,10 @@ void calculateKinematics(float rollRate,          float pitchRate,    float yawR
             longitudinalAccel, lateralAccel, verticalAccel,  
 		    G_Dt);
   eulerAngles();
+  // logger.log(currentTime, DataLogger::q0, q0);
+  // logger.log(currentTime, DataLogger::q1, q1);
+  // logger.log(currentTime, DataLogger::q2, q2);
+  // logger.log(currentTime, DataLogger::q3, q3);
 }
   
 float getGyroUnbias(byte axis) {

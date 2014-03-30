@@ -34,7 +34,7 @@
 
 #if defined(UseGPSNMEA) || defined(UseGPSUBLOX) || defined(UseGPSMTK) || defined(UseGPS406)
  #define UseGPS
-#endif 
+#endif
 
 #if defined(UseGPSNavigator) && !defined(AltitudeHoldBaro)
   #error "GpsNavigation NEED AltitudeHoldBaro defined"
@@ -50,7 +50,7 @@
 
 #if defined (CameraTXControl) && !defined (CameraControl)
   #error "CameraTXControl need to have CameraControl defined"
-#endif 
+#endif
 
 #include <EEPROM.h>
 #include <Wire.h>
@@ -91,7 +91,7 @@
   #undef HeadingMagHold
   #undef BattMonitor
   #undef BattMonitorAutoDescent
-  #undef POWERED_BY_VIN        
+  #undef POWERED_BY_VIN
   #undef CameraControl
   #undef OSD
   #undef UseGPS
@@ -104,7 +104,7 @@
   void initPlatform() {
     setGyroAref(aref);
   }
-  
+
   // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Accel Cal
@@ -148,7 +148,7 @@
   #undef HeadingMagHold
   #undef BattMonitor
   #undef BattMonitorAutoDescent
-  #undef POWERED_BY_VIN        
+  #undef POWERED_BY_VIN
   #undef CameraControl
   #undef OSD
   #undef UseGPS
@@ -160,7 +160,7 @@
   void initPlatform() {
     setGyroAref(aref);
   }
-  
+
     // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Accel Cal
@@ -211,7 +211,7 @@
     #define BattDefaultConfig DEFINE_BATTERY(0, 0, 15, 0.9, BM_NOPIN, 0, 0)
   #else
     #undef BattMonitorAutoDescent
-    #undef POWERED_BY_VIN        
+    #undef POWERED_BY_VIN
   #endif
 
   #undef AltitudeHoldBaro
@@ -234,7 +234,7 @@
     Wire.begin();
     TWBR = 12;
   }
-  
+
   // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Kenny default value, a real accel calibration is strongly recommended
@@ -275,24 +275,24 @@
     #define MOTOR_PWM_Timer
   #else
     #define MOTOR_PWM
-  #endif    
+  #endif
 
   // heading mag hold declaration
   #ifdef HeadingMagHold
     #define HMC5843
   #endif
-  
+
   // Battery Monitor declaration
   #ifdef BattMonitor
     #define BattDefaultConfig DEFINE_BATTERY(0, 0, 15.0, 0.53, BM_NOPIN, 0, 0)
   #else
     #undef BattMonitorAutoDescent
-    #undef POWERED_BY_VIN        
+    #undef POWERED_BY_VIN
   #endif
 
   // unsupported in mini
   #undef AltitudeHoldBaro
-  #undef AltitudeHoldRangeFinder  
+  #undef AltitudeHoldRangeFinder
   #undef CameraControl
   #undef OSD
   #undef UseGPS
@@ -351,11 +351,11 @@
 
   // unsupported on mega v1
   #undef AltitudeHoldBaro
-  #undef AltitudeHoldRangeFinder  
+  #undef AltitudeHoldRangeFinder
   #undef HeadingMagHold
   #undef BattMonitor
   #undef BattMonitorAutoDescent
-  #undef POWERED_BY_VIN        
+  #undef POWERED_BY_VIN
   #undef CameraControl
   #undef OSD
 
@@ -365,7 +365,7 @@
   void initPlatform() {
     setGyroAref(aref);
   }
-  
+
     // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Accel Cal
@@ -416,11 +416,11 @@
   #endif
 
   // Altitude declaration
-  #ifdef AltitudeHoldBaro    
-    #define BMP085 
+  #ifdef AltitudeHoldBaro
+    #define BMP085
   #endif
   #ifdef AltitudeHoldRangeFinder
-    #define XLMAXSONAR 
+    #define XLMAXSONAR
   #endif
 
   // Battery Monitor declaration
@@ -432,13 +432,13 @@
     #endif
   #else
     #undef BattMonitorAutoDescent
-    #undef POWERED_BY_VIN        
+    #undef POWERED_BY_VIN
   #endif
 
   #ifdef OSD
     #define MAX7456_OSD
-  #endif  
-  
+  #endif
+
   #ifndef UseGPS
     #undef UseGPSNavigator
   #endif
@@ -469,7 +469,7 @@
     Wire.begin();
     TWBR = 12;
   }
-  
+
   // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Kenny default value, a real accel calibration is strongly recommended
@@ -523,7 +523,7 @@
     #define BMP085
   #endif
   #ifdef AltitudeHoldRangeFinder
-    #define XLMAXSONAR 
+    #define XLMAXSONAR
   #endif
 
 
@@ -536,13 +536,13 @@
     #endif
   #else
     #undef BattMonitorAutoDescent
-    #undef POWERED_BY_VIN        
+    #undef POWERED_BY_VIN
   #endif
 
   #ifdef OSD
     #define MAX7456_OSD
-  #endif  
-  
+  #endif
+
   #ifndef UseGPS
     #undef UseGPSNavigator
   #endif
@@ -574,7 +574,7 @@
     Wire.begin();
     TWBR = 12;
   }
-  
+
   // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Kenny default value, a real accel calibration is strongly recommended
@@ -623,7 +623,7 @@
     #define HMC5843
   #endif
   #ifdef AltitudeHoldRangeFinder
-    #define XLMAXSONAR 
+    #define XLMAXSONAR
   #endif
 
 
@@ -637,7 +637,7 @@
     #define BattDefaultConfig DEFINE_BATTERY(0, 0, 13.35, 0.31, BM_NOPIN, 0, 0)
   #else
     #undef BattMonitorAutoDescent
-    #undef POWERED_BY_VIN        
+    #undef POWERED_BY_VIN
   #endif
 
   #undef CameraControl
@@ -646,7 +646,7 @@
     #undef UseGPSNavigator
   #endif
 
-  
+
   /**
    * Put ArduCopter specific initialization need here
    */
@@ -661,7 +661,7 @@
     Wire.begin();
     TWBR = 12;
   }
-  
+
   // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Accel Cal
@@ -714,11 +714,11 @@
   // heading mag hold declaration
   // unsupported on mega v1
   #undef AltitudeHoldBaro
-  #undef AltitudeHoldRangeFinder  
+  #undef AltitudeHoldRangeFinder
   #undef HeadingMagHold
   #undef BattMonitor
   #undef BattMonitorAutoDescent
-  #undef POWERED_BY_VIN        
+  #undef POWERED_BY_VIN
   #undef CameraControl
   #undef OSD
   #undef UseGPS
@@ -737,7 +737,7 @@
        initializeWiiSensors();
      #endif
   }
-  
+
   // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Accel Cal
@@ -795,7 +795,7 @@
     #define BMP085
   #endif
   #ifdef AltitudeHoldRangeFinder
-    #define XLMAXSONAR 
+    #define XLMAXSONAR
   #endif
 
   // Battery monitor declaration
@@ -803,13 +803,13 @@
     #define BattDefaultConfig DEFINE_BATTERY(0, 0, 15.0, 0.9, BM_NOPIN, 0, 0)
   #else
     #undef BattMonitorAutoDescent
-    #undef POWERED_BY_VIN        
+    #undef POWERED_BY_VIN
   #endif
 
   #ifdef OSD
     #define MAX7456_OSD
   #endif
-  
+
   #undef UseGPS        // Wii not enough stable to use gps
   #undef UseGPSNavigator
 
@@ -822,7 +822,7 @@
 
     initializeWiiSensors();
   }
-  
+
   // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Accel Cal
@@ -890,7 +890,7 @@
     #define BMP085
   #endif
   #ifdef AltitudeHoldRangeFinder
-    #define XLMAXSONAR 
+    #define XLMAXSONAR
   #endif
 
   // Battery monitor declaration
@@ -898,9 +898,9 @@
     #define BattDefaultConfig DEFINE_BATTERY(0, 0, 13.35, 0.9, BM_NOPIN, 0, 0)
   #else
     #undef BattMonitorAutoDescent
-    #undef POWERED_BY_VIN        
+    #undef POWERED_BY_VIN
   #endif
-  
+
   #ifndef UseGPS
     #undef UseGPSNavigator
   #endif
@@ -925,7 +925,7 @@
     kinematicsChr6dm = &chr6dm;
     compassChr6dm = &chr6dm;
   }
-  
+
   // called when eeprom is initialized
   void initializePlatformSpecificAccelCalibration() {
     // Accel Cal
@@ -984,21 +984,21 @@
     #define BMP085
   #endif
   #ifdef AltitudeHoldRangeFinder
-    #define XLMAXSONAR 
+    #define XLMAXSONAR
   #endif
-  
+
 
   // Battery monitor declaration
   #ifdef BattMonitor
     #define BattDefaultConfig DEFINE_BATTERY(0, 0, 13.35, 0.31, BM_NOPIN, 0, 0)
   #else
     #undef BattMonitorAutoDescent
-    #undef POWERED_BY_VIN        
+    #undef POWERED_BY_VIN
   #endif
 
   #undef CameraControl
   #undef OSD
-  
+
   #ifndef UseGPS
     #undef UseGPSNavigator
   #endif
@@ -1098,12 +1098,12 @@
 #elif defined(RECEIVER_APM)
   #include <Receiver_APM.h>
 #elif defined(RECEIVER_STM32PPM)
-  #include <Receiver_STM32PPM.h>  
+  #include <Receiver_STM32PPM.h>
 #elif defined(RECEIVER_STM32)
-  #include <Receiver_STM32.h>  
+  #include <Receiver_STM32.h>
 #endif
 
-#if defined(UseAnalogRSSIReader) 
+#if defined(UseAnalogRSSIReader)
   #include <AnalogRSSIReader.h>
 #elif defined(UseEzUHFRSSIReader)
   #include <EzUHFRSSIReader.h>
@@ -1119,7 +1119,7 @@
 #if defined(triConfig)
   #if defined (MOTOR_STM32)
     #define MOTORS_STM32_TRI
-    #include <Motors_STM32.h>    
+    #include <Motors_STM32.h>
   #else
     #include <Motors_Tri.h>
   #endif
@@ -1132,7 +1132,7 @@
 #elif defined(MOTOR_I2C)
   #include <Motors_I2C.h>
 #elif defined(MOTOR_STM32)
-  #include <Motors_STM32.h>    
+  #include <Motors_STM32.h>
 #endif
 
 //********************************************************
@@ -1157,7 +1157,7 @@
 #endif
 #if defined(XLMAXSONAR)
   #include <MaxSonarRangeFinder.h>
-#endif 
+#endif
 //********************************************************
 //*************** BATTERY MONITOR DECLARATION ************
 //********************************************************
@@ -1213,7 +1213,7 @@
 #if defined(UseGPS)
   #if !defined(HeadingMagHold)
     #error We need the magnetometer to use the GPS
-  #endif 
+  #endif
   #include <GpsAdapter.h>
   #include "GpsNavigator.h"
 #endif
@@ -1242,13 +1242,13 @@
 //********************************************************
 //****************** SERIAL PORT DECLARATION *************
 //********************************************************
-#if defined(WirelessTelemetry) 
+#if defined(WirelessTelemetry)
   #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     #define SERIAL_PORT Serial3
   #else    // force 328p to use the normal port
     #define SERIAL_PORT Serial
   #endif
-#else  
+#else
   #if defined(SERIAL_USES_USB)   // STM32 Maple
     #define SERIAL_PORT SerialUSB
     #undef BAUD
@@ -1256,7 +1256,7 @@
   #else
     #define SERIAL_PORT Serial
   #endif
-#endif  
+#endif
 
 #ifdef SlowTelemetry
   #include <AQ_RSCode.h>
@@ -1276,7 +1276,7 @@
 
 #if defined(UseGPS) || defined(BattMonitor)
   #include "LedStatusProcessor.h"
-#endif  
+#endif
 
 #if defined(MavLink)
   #include "MavLink.h"
@@ -1297,7 +1297,7 @@ void setup() {
   digitalWrite(LED_Green, LOW);
 
   initCommunication();
-  
+
   readEEPROM(); // defined in DataStorage.h
   boolean firstTimeBoot = false;
   if (readFloat(SOFTWARE_VERSION_ADR) != SOFTWARE_VERSION) { // If we detect the wrong soft version, we init all parameters
@@ -1305,9 +1305,9 @@ void setup() {
     writeEEPROM();
     firstTimeBoot = true;
   }
-  
+
   initPlatform();
-  
+
   #if defined(quadXConfig) || defined(quadPlusConfig) || defined(quadY4Config) || defined(triConfig)
      initializeMotors(FOUR_Motors);
   #elif defined(hexPlusConfig) || defined(hexXConfig) || defined(hexY6Config)
@@ -1318,7 +1318,7 @@ void setup() {
 
   initializeReceiver(LASTCHANNEL);
   initReceiverFromEEPROM();
-  
+
   // Initialize sensors
   // If sensors have a common initialization routine
   // insert it into the gyro class because it executes first
@@ -1331,14 +1331,14 @@ void setup() {
   }
   setupFourthOrder();
   initSensorsZeroFromEEPROM();
-  
+
   // Integral Limit for attitude mode
   // This overrides default set in readEEPROM()
   // Set for 1/2 max attitude command (+/-0.75 radians)
   // Rate integral not used for now
   PID[ATTITUDE_XAXIS_PID_IDX].windupGuard = 0.375;
   PID[ATTITUDE_YAXIS_PID_IDX].windupGuard = 0.375;
-  
+
   // Flight angle estimation
   initializeKinematics();
 
@@ -1347,7 +1347,7 @@ void setup() {
     initializeMagnetometer();
     initializeHeadingFusion();
   #endif
-  
+
   // Optional Sensors
   #ifdef AltitudeHoldBaro
     initializeBaro();
@@ -1361,12 +1361,12 @@ void setup() {
     PID[SONAR_ALTITUDE_HOLD_PID_IDX].D = PID[BARO_ALTITUDE_HOLD_PID_IDX].D;
     PID[SONAR_ALTITUDE_HOLD_PID_IDX].windupGuard = PID[BARO_ALTITUDE_HOLD_PID_IDX].windupGuard;
   #endif
-  
+
   #ifdef BattMonitor
     initializeBatteryMonitor(sizeof(batteryData) / sizeof(struct BatteryData), batteryMonitorAlarmVoltage);
     vehicleState |= BATTMONITOR_ENABLED;
   #endif
-  
+
   #if defined(CameraControl)
     initializeCameraStabilization();
     vehicleState |= CAMERASTABLE_ENABLED;
@@ -1377,7 +1377,7 @@ void setup() {
     delay(100);
     initializeOSD();
   #endif
-  
+
   #if defined(SERIAL_LCD)
     InitSerialLCD();
   #endif
@@ -1391,10 +1391,10 @@ void setup() {
      binaryPort = &Serial;
     #endif
   #endif
-  
+
   #if defined(UseGPS)
     initializeGps();
-  #endif 
+  #endif
 
   #ifdef SlowTelemetry
      initSlowTelemetry();
@@ -1410,63 +1410,79 @@ void setup() {
  * 100Hz task
  ******************************************************************/
 void process100HzTask() {
-  
+
   G_Dt = (currentTime - hundredHZpreviousTime) / 1000000.0;
   hundredHZpreviousTime = currentTime;
-  
+
   evaluateGyroRate();
   evaluateMetersPerSec();
+  // logger.log(currentTime, DataLogger::meterPerSecSecX, meterPerSecSec[XAXIS]);
+  // logger.log(currentTime, DataLogger::meterPerSecSecY, meterPerSecSec[YAXIS]);
+  // logger.log(currentTime, DataLogger::meterPerSecSecZ, meterPerSecSec[ZAXIS]);
 
   for (int axis = XAXIS; axis <= ZAXIS; axis++) {
     filteredAccel[axis] = computeFourthOrder(meterPerSecSec[axis], &fourthOrder[axis]);
   }
-    
+
   calculateKinematics(gyroRate[XAXIS], gyroRate[YAXIS], gyroRate[ZAXIS], filteredAccel[XAXIS], filteredAccel[YAXIS], filteredAccel[ZAXIS], G_Dt);
-  
-  #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
-    zVelocity = (filteredAccel[ZAXIS] * (1 - accelOneG * invSqrt(fsq(filteredAccel[XAXIS]) + fsq(filteredAccel[YAXIS]) + fsq(filteredAccel[ZAXIS])))) - runTimeAccelBias[ZAXIS] - runtimeZBias;
-    if (!runtimaZBiasInitialized) {
-      runtimeZBias = (filteredAccel[ZAXIS] * (1 - accelOneG * invSqrt(fsq(filteredAccel[XAXIS]) + fsq(filteredAccel[YAXIS]) + fsq(filteredAccel[ZAXIS])))) - runTimeAccelBias[ZAXIS];
-      runtimaZBiasInitialized = true;
-    }
-    estimatedZVelocity += zVelocity;
-    // logger.log(currentTime, DataLogger::zVelocity, zVelocity);
-    estimatedZVelocity = (velocityCompFilter1 * zVelocity) + (velocityCompFilter2 * estimatedZVelocity);
-    // logger.log(currentTime, DataLogger::estimatedZVelocity, estimatedZVelocity);
-  #endif    
+  // logger.log(currentTime, DataLogger::kinematicsAngleX, kinematicsAngle[XAXIS]);
+  // logger.log(currentTime, DataLogger::kinematicsAngleY, kinematicsAngle[YAXIS]);
+  // logger.log(currentTime, DataLogger::kinematicsAngleZ, kinematicsAngle[ZAXIS]);
 
   #if defined(AltitudeHoldBaro)
-    measureBaroSum(); 
+    measureBaroSum();
     if (frameCounter % THROTTLE_ADJUST_TASK_SPEED == 0) {  //  50 Hz tasks
       evaluateBaroAltitude();
     }
   #endif
-        
+
+  #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
+
+    //  Integrate accelerometers in the "down" direction to estimate vertical speed.
+    float verticalAcceleration = meterPerSecSec[XAXIS] * down[XAXIS]
+                                 + meterPerSecSec[YAXIS] * down[YAXIS]
+                                 + meterPerSecSec[ZAXIS] * down[ZAXIS]
+                                 + accelOneG;
+    //  Note: sign reversal, so a positive vertical speed is a rate of climb.
+    verticalSpeedUncorrected += -verticalAcceleration * G_Dt;
+
+    //  Use rate of change of barometer to correct long-term drift in the vertical speed estimate.
+    verticalSpeedCorrection = filterSmooth(baroAltitudeRate - verticalSpeedUncorrected, verticalSpeedCorrection, 0.0025);
+    verticalSpeed = verticalSpeedUncorrected + verticalSpeedCorrection;
+    logger.log(currentTime, DataLogger::zAcceleration, -verticalAcceleration);
+    logger.log(currentTime, DataLogger::zVelocity, verticalSpeed);
+
+    altitudeUncorrected += verticalSpeed * G_Dt;
+    altitudeCorrection = filterSmooth(getBaroAltitude() - altitudeUncorrected, altitudeCorrection, 0.0025);
+    altitude = altitudeUncorrected + altitudeCorrection;
+    logger.log(currentTime, DataLogger::altitude, altitude);
+    logger.log(currentTime, DataLogger::altitudeCorrection, altitudeCorrection);
+  #endif
+
   processFlightControl();
-  
-  
+
+
   #if defined(BinaryWrite)
     if (fastTransfer == ON) {
       // write out fastTelemetry to Configurator or openLog
       fastTelemetry();
     }
-  #endif      
-  
+  #endif
+
   #ifdef SlowTelemetry
     updateSlowTelemetry100Hz();
   #endif
 
   #if defined(UseGPS)
     updateGps();
-  #endif      
-  
+  #endif
+
   #if defined(CameraControl)
     moveCamera(kinematicsAngle[YAXIS],kinematicsAngle[XAXIS],kinematicsAngle[ZAXIS]);
     #if defined CameraTXControl
       processCameraTXControl();
     #endif
-  #endif       
-
+  #endif
 }
 
 /*******************************************************************
@@ -1477,8 +1493,8 @@ void process50HzTask() {
   fiftyHZpreviousTime = currentTime;
 
   // Reads external pilot commands and performs functions based on stick configuration
-  readPilotCommands(); 
-  
+  readPilotCommands();
+
   #if defined(UseAnalogRSSIReader) || defined(UseEzUHFRSSIReader) || defined(UseSBUSRSSIReader)
     readRSSI();
   #endif
@@ -1491,23 +1507,23 @@ void process50HzTask() {
     if (haveAGpsLock() && !isHomeBaseInitialized()) {
       initHomeBase();
     }
-  #endif      
+  #endif
 }
 
 /*******************************************************************
  * 10Hz task
  ******************************************************************/
 void process10HzTask1() {
-  
+
   #if defined(HeadingMagHold)
-  
+
     G_Dt = (currentTime - tenHZpreviousTime) / 1000000.0;
     tenHZpreviousTime = currentTime;
-     
+
     measureMagnetometer(kinematicsAngle[XAXIS], kinematicsAngle[YAXIS]);
-    
+
     calculateHeading();
-    
+
   #endif
 }
 
@@ -1517,7 +1533,7 @@ void process10HzTask1() {
 void process10HzTask2() {
   G_Dt = (currentTime - lowPriorityTenHZpreviousTime) / 1000000.0;
   lowPriorityTenHZpreviousTime = currentTime;
-  
+
   #if defined(BattMonitor)
     measureBatteryVoltage(G_Dt*1000.0);
   #endif
@@ -1541,25 +1557,25 @@ void process10HzTask3() {
     #ifdef MAX7456_OSD
       updateOSD();
     #endif
-    
+
     #if defined(UseGPS) || defined(BattMonitor)
       processLedStatus();
     #endif
-    
+
     #ifdef SlowTelemetry
       updateSlowTelemetry10Hz();
     #endif
 }
 
 /*******************************************************************
- * 1Hz task 
+ * 1Hz task
  ******************************************************************/
 void process1HzTask() {
   #ifdef MavLink
     G_Dt = (currentTime - oneHZpreviousTime) / 1000000.0;
     oneHZpreviousTime = currentTime;
-    
-    sendSerialHeartbeat();   
+
+    sendSerialHeartbeat();
   #endif
 }
 
@@ -1567,7 +1583,7 @@ void process1HzTask() {
  * Main loop funtions
  ******************************************************************/
 void loop () {
-  
+
   currentTime = micros();
   deltaTime = currentTime - previousTime;
 
@@ -1577,9 +1593,9 @@ void loop () {
   // 100Hz task loop
   // ================================================================
   if (deltaTime >= 10000) {
-    
+
     frameCounter++;
-    
+
     process100HzTask();
 
     // ================================================================
@@ -1601,21 +1617,18 @@ void loop () {
     else if ((currentTime - lowPriorityTenHZpreviousTime2) > 100000) {
       process10HzTask3();
     }
-    
+
     // ================================================================
     // 1Hz task loop
     // ================================================================
     if (frameCounter % TASK_1HZ == 0) {  //   1 Hz tasks
       process1HzTask();
     }
-    
+
     previousTime = currentTime;
   }
-  
+
   if (frameCounter >= 100) {
       frameCounter = 0;
   }
 }
-
-
-

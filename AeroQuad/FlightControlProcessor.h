@@ -348,13 +348,19 @@ void processFlightControl() {
     logger.log(currentTime, DataLogger::altitudeThrottlePID_I, PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].I);
     logger.log(currentTime, DataLogger::altitudeThrottlePID_D, PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].D);
     logger.log(currentTime, DataLogger::altitudeHoldThrottleSmoothingFactor, altitudeHoldThrottleSmoothingFactor);
+    logger.log(currentTime, DataLogger::accelOneG, accelOneG);
+    logger.log(currentTime, DataLogger::accelOneG, accelOneGZan);
 
     //  Log the current state of these now since they're only logged when they change.
     logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
     logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
+
+    logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
+    // verticalSpeedUncorrected = 0.0;
+    // verticalSpeedCorrection = 0.0;
+    // verticalSpeed = 0.0;
   }
   previousAUX3 = receiverCommand[AUX3];
 }
 
 #endif //#define _AQ_PROCESS_FLIGHT_CONTROL_H_
-

@@ -50,49 +50,31 @@ void processAltitudeHold()
   // http://aeroquad.com/showthread.php?359-Stable-flight-logic...&p=10325&viewfull=1#post10325
 
   if (ALT_BARO == altitudeHoldMode || ALT_SONAR == altitudeHoldMode) {
-    float altitude = getBaroAltitude();
-    float speed = baroAltitudeRate;     //  Vertical speed.
-
-    #if defined AltitudeHoldRangeFinder
-      if (ALT_SONAR == altitudeHoldMode) {
-        altitude = rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
-        speed = rangeFinderRate[ALTITUDE_RANGE_FINDER_INDEX];
-      }
-    #endif
-
-    // #if defined AltitudeHoldRangeFinder
-      // if (isOnRangerRange(rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX])) {
-        // if (sonarAltitudeToHoldTarget == INVALID_RANGE) {
-          // sonarAltitudeToHoldTarget = rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
-        // }
-        // altitudeHoldThrottleCorrection = updatePID(sonarAltitudeToHoldTarget, rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX], &PID[SONAR_ALTITUDE_HOLD_PID_IDX]);
-        // altitudeHoldThrottleCorrection = constrain(altitudeHoldThrottleCorrection, minThrottleAdjust, maxThrottleAdjust);
-      // }
-    // #endif
 
     float PIDComponents[3];
-    simulatePID(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX], PIDComponents);
-    logger.log(currentTime, DataLogger::altitudeSpeedPID_Pr, PIDComponents[0]);
-    logger.log(currentTime, DataLogger::altitudeSpeedPID_Ir, PIDComponents[1]);
+    // simulatePID(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX], PIDComponents);
+    // logger.log(currentTime, DataLogger::altitudeSpeedPID_Pr, PIDComponents[0]);
+    // logger.log(currentTime, DataLogger::altitudeSpeedPID_Ir, PIDComponents[1]);
 
-    targetVerticalSpeed = updatePID(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX]);
+    targetVerticalSpeed = updatePIDAlternate(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX], NULL);
     logger.log(currentTime, DataLogger::targetVerticalSpeed, targetVerticalSpeed);
 
-    simulatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
+    // simulatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
+    // simulatePID(targetVerticalSpeed, verticalSpeed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
+
+    // altitudeHoldThrottleCorrectionRaw = updatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX]);
+    altitudeHoldThrottleCorrection = updatePIDAlternate(targetVerticalSpeed, verticalSpeed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
+    altitudeHoldThrottleCorrection = constrain(altitudeHoldThrottleCorrection, minThrottleAdjust, maxThrottleAdjust);
     logger.log(currentTime, DataLogger::altitudeThrottlePID_Pr, PIDComponents[0]);
     logger.log(currentTime, DataLogger::altitudeThrottlePID_Ir, PIDComponents[1]);
-
-    altitudeHoldThrottleCorrectionRaw = updatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX]);
-    altitudeHoldThrottleCorrectionSmoothed = filterSmooth(altitudeHoldThrottleCorrectionRaw,
-                                                          altitudeHoldThrottleCorrectionSmoothed,
-                                                          altitudeHoldThrottleSmoothingFactor);
-    altitudeHoldThrottleCorrection = constrain((int)altitudeHoldThrottleCorrectionSmoothed, minThrottleAdjust, maxThrottleAdjust);
+    logger.log(currentTime, DataLogger::altitudeThrottlePID_Dr, PIDComponents[2]);
     logger.log(currentTime, DataLogger::altitudeHoldThrottleCorrection, altitudeHoldThrottleCorrection);
 
     if (abs(altitudeHoldThrottle - receiverCommand[THROTTLE]) > altitudeHoldPanicStickMovement) {
       altitudeHoldMode = ALT_PANIC; // too rapid of stick movement so PANIC out of ALTHOLD
       altitudeHoldThrottleCorrection = 0;
       logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
+      logger.log(currentTime, DataLogger::altitudeHoldThrottleCorrection, altitudeHoldThrottleCorrection);
     }
     else {
 
@@ -122,6 +104,7 @@ void processAltitudeHold()
   }
   else {
     throttle = receiverCommand[THROTTLE];
+    logger.log(currentTime, DataLogger::receiverCommandThrottle, receiverCommand[THROTTLE]);
   }
 }
 

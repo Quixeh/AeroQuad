@@ -55,22 +55,25 @@
     //  If desired mode is different from the current mode, change the current mode.
     //
     if (altitudeHoldMode != switchSetting) {
+      logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
       switch (switchSetting) {
         case ALT_OFF:
           //  Turn altitude mode off and/or reset from a panic state.
           altitudeHoldMode = ALT_OFF;
+          altitudeHoldThrottleCorrection = 0;
+          logger.log(currentTime, DataLogger::altitudeHoldThrottleCorrection, altitudeHoldThrottleCorrection);
           break;
         case ALT_BARO:
           //  Initialize altitude hold using barometer, but only if we're not panicked.
           if (ALT_PANIC != altitudeHoldMode) {
             altitudeHoldMode = ALT_BARO;
-            altitudeToHoldTarget = 2.0 + getBaroAltitude();
+            altitudeToHoldTarget = 3.0 + getBaroAltitude();
             logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
             altitudeHoldThrottle = receiverCommand[THROTTLE];
+            logger.log(currentTime, DataLogger::altitudeHoldThrottle, altitudeHoldThrottle);
             altitudeHoldThrottleCorrection = 0;
-            altitudeHoldThrottleCorrectionSmoothed = 0.0;
 
-            //  Reach inside the PID to reset it into a clean state.  Yuk.
+            //  Reach inside the PID to reset them to a clean state.  Yuk.
             PID[ALTITUDE_HOLD_SPEED_PID_IDX].previousPIDTime = currentTime - 0.020;
             PID[ALTITUDE_HOLD_SPEED_PID_IDX].integratedError = 0;
             PID[ALTITUDE_HOLD_SPEED_PID_IDX].lastError = altitudeToHoldTarget;
@@ -80,16 +83,17 @@
           }
           break;
         case ALT_SONAR:
+    #if defined AltitudeHoldRangeFinder
           //  Initialize altitude hold using range finder, but only if we're not panicked.
           if (ALT_PANIC != altitudeHoldMode) {
             altitudeHoldMode = ALT_SONAR;
-            altitudeToHoldTarget = 2.0 + rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
+            altitudeToHoldTarget = 0.0 + rangeFinderRange[ALTITUDE_RANGE_FINDER_INDEX];
             logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
             altitudeHoldThrottle = receiverCommand[THROTTLE];
+            logger.log(currentTime, DataLogger::altitudeHoldThrottle, altitudeHoldThrottle);
             altitudeHoldThrottleCorrection = 0;
-            altitudeHoldThrottleCorrectionSmoothed = 0.0;
 
-            //  Reach inside the PIDs to reset it into a clean state.  Yuk.
+            //  Reach inside the PIDs to reset them to a clean state.  Yuk.
             PID[ALTITUDE_HOLD_SPEED_PID_IDX].previousPIDTime = currentTime - 0.020;
             PID[ALTITUDE_HOLD_SPEED_PID_IDX].integratedError = 0;
             PID[ALTITUDE_HOLD_SPEED_PID_IDX].lastError = altitudeToHoldTarget;
@@ -97,6 +101,7 @@
             PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].integratedError = 0;
             PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].lastError = 0.0;
           }
+    #endif
           break;
         case ALT_PANIC:
           ; //  Not selectable by switches.
@@ -295,4 +300,3 @@ void readPilotCommands() {
 }
 
 #endif // _AQ_FLIGHT_COMMAND_READER_
-

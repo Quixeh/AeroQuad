@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <alloca.h>
 
 #include "DataLogger.h"
 
 #define ARRAY_LEN(A) (sizeof(A) / sizeof((A)[0]))
+#define MIN(A, B) ((A) < (B) ? (A) : (B))
 
 enum Encodings {
   E_ulong,  //  unsigned long
@@ -13,30 +15,47 @@ enum Encodings {
   E_ushort, //  unsigned short
   E_uchar,  //  unsigned char
   E_float,  //  float
+  E_string, //  string
 };
 
 #define TABENT(type, encoding) { #type, encoding }
 static const struct {
   const char *name;
-  Encodings encoding;  // 'l' = unsigned long, 'h' = unsigned short, 'f' = float, 'b' = byte
+  Encodings encoding;
 } eventInfo[] = {
   TABENT(absoluteTimestamp,              E_ulong ),
   TABENT(relativeTimestamp,              E_ushort),
   TABENT(typeError,                      E_int   ),
+  TABENT(string,                         E_string),
   TABENT(rawPressure,                    E_float ),
   TABENT(rawTemperature,                 E_ulong ),
   TABENT(rawPressureSumCount,            E_uchar ),
   TABENT(baroRawAltitude,                E_float ),
   TABENT(baroAltitude,                   E_float ),
   TABENT(baroAltitudeRate,               E_float ),
+  TABENT(kinematicsAngleX,               E_float ),
+  TABENT(kinematicsAngleY,               E_float ),
+  TABENT(kinematicsAngleZ,               E_float ),
+  TABENT(q0,                             E_float ),
+  TABENT(q1,                             E_float ),
+  TABENT(q2,                             E_float ),
+  TABENT(q3,                             E_float ),
+  TABENT(meterPerSecSecX,                E_float ),
+  TABENT(meterPerSecSecY,                E_float ),
+  TABENT(meterPerSecSecZ,                E_float ),
+  TABENT(altitude,                       E_float ),
+  TABENT(altitudeCorrection,             E_float ),
   TABENT(zVelocity,                      E_float ),
+  TABENT(zAcceleration,                  E_float ),
   TABENT(estimatedZVelocity,             E_float ),
   TABENT(rangeFinderRange,               E_float ),
   TABENT(rangeFinderRate,                E_float ),
   TABENT(altitudeHoldThrottleCorrection, E_short ),
+  TABENT(altitudeHoldThrottle,           E_short ),
   TABENT(targetVerticalSpeed,            E_float ),
   TABENT(altitudeToHoldTarget,           E_float ),
   TABENT(altitudeHoldMode,               E_uchar ),
+  TABENT(receiverCommandThrottle,        E_ushort),
   TABENT(receiverCommandAUX3,            E_ushort),
   TABENT(baroSmoothFactor,               E_float ),
   TABENT(altitudeSpeedPID_P,             E_float ),
@@ -52,6 +71,7 @@ static const struct {
   TABENT(altitudeThrottlePID_Pr,         E_float ),
   TABENT(altitudeThrottlePID_Ir,         E_float ),
   TABENT(altitudeThrottlePID_Dr,         E_float ),
+  TABENT(accelOneG,                      E_float ),
 };
 #undef TABENT
 
@@ -207,6 +227,29 @@ bool DataLogger::log(unsigned long timestamp, EventType type, float value)
 }
 
 
+bool DataLogger::log(unsigned long timestamp, EventType type, const char *s)
+{
+  //  Is event type sane?
+  if (ARRAY_LEN(eventInfo) <= type) {
+    _log_error(type);
+    return false;
+  }
+
+  // Does the type of value match what we're expecting to store?
+  if (E_string != eventInfo[type].encoding) {
+    _log_error(type);
+    return false;
+  }
+
+  //  Store it.
+  unsigned short len = MIN(strlen(s), USHRT_MAX);
+  char *buf = (char *) alloca(sizeof(unsigned short) + len);
+  memcpy(buf, &len, sizeof(len));
+  memcpy(buf + sizeof(len), s, len);
+  return _mark_time(timestamp) && _put(type, buf, sizeof(unsigned short) + len);
+}
+
+
 bool DataLogger::_mark_time(unsigned long timestamp)
 {
   bool success = true;
@@ -299,9 +342,30 @@ bool DataLogger::read_next(char *buffer, int size)
           len = snprintf(buffer, size, "%s, %f", nameOf(type), *(float *)ptr);
           readpos += sizeof(float);
           break;
+        case E_string:
+          int slen = *(unsigned short *) ptr;
+          const char *s =  ((const char *)ptr + sizeof(unsigned short));
+          len = snprintf(buffer, size, "%s, %*.*s", nameOf(type), slen, slen, s);
+          readpos += sizeof(unsigned short) + slen;
+          break;
       }
       return len > -1 && len < size;
     }
   }
   return false;
 }
+
+#if 0
+int main(void)
+{
+  DataLogger logger;
+  logger.write_enable();
+  logger.log(5000000, DataLogger::string, "Hi, there!");
+  logger.log(6000000, DataLogger::rangeFinderRange, (float) 13.0);
+
+  char buffer[512];
+  while (logger.read_next(buffer, sizeof(buffer)))
+    fprintf(stdout, "%s\n", buffer);
+  return 0;
+}
+#endif

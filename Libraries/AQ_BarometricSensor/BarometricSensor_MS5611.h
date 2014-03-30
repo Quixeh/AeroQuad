@@ -241,6 +241,18 @@ void measureBaroSum() {
   }
 }
 
+void resetAltitude() {
+  #if defined AltitudeHoldBaro
+	  baroGroundAltitude = baroAltitude;
+    verticalSpeedUncorrected = 0.0;
+    verticalSpeedCorrection = 0.0;
+    verticalSpeed = 0.0;
+    altitudeUncorrected = 0.0;
+    altitudeCorrection = 0.0;
+    altitude = 0.0;
+  #endif
+}
+
 bool MS5611_first_read = true;
 
 void evaluateBaroAltitude() {
@@ -256,13 +268,15 @@ void evaluateBaroAltitude() {
   // use calculation below in case you need a smaller binary file for CPUs having just 32KB flash ROM
   // baroRawAltitude = (101325.0-pressure)/4096*346;
 
-  if(MS5611_first_read) {
+  if (MS5611_first_read) {
     baroAltitude = baroRawAltitude;
+    baroAltitudeAsof = currentTime;
     MS5611_first_read = false;
   } 
   else {
     float newBaroAltitude = filterSmooth(baroRawAltitude, baroAltitude, baroSmoothFactor);
-    baroAltitudeRate = (newBaroAltitude - baroAltitude) / (currentTime - baroAltitudeAsof) * 1000000.0;
+    if (currentTime - baroAltitudeAsof > 0)
+      baroAltitudeRate = (newBaroAltitude - baroAltitude) / (currentTime - baroAltitudeAsof) * 1000000.0;
     logger.log(currentTime, DataLogger::baroAltitudeRate, baroAltitudeRate);
     baroAltitude = newBaroAltitude;
     baroAltitudeAsof = currentTime;
@@ -272,12 +286,15 @@ void evaluateBaroAltitude() {
   rawPressureSum = 0.0;
   rawPressureSumCount = 0;
 
+#if 1
   // set ground altitude after a delay, so sensor has time to heat up
   const unsigned long updateDelayInSeconds = 10;
-  if(!baroGroundUpdateDone && (micros()-baroStartTime) > updateDelayInSeconds*1000000) {
+  if (!baroGroundUpdateDone && (micros()-baroStartTime) > updateDelayInSeconds*1000000) {
 	  baroGroundAltitude = baroAltitude;
 	  baroGroundUpdateDone = true;
+    resetAltitude();
   }
+#endif
 }
 
 #endif

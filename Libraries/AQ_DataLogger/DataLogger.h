@@ -7,20 +7,36 @@ class DataLogger {
       absoluteTimestamp, //  For internal logger use.
       relativeTimestamp, //  For internal logger use.
       typeError,         //  For internal logger use.
+      string,
       rawPressure,
       rawTemperature,
       rawPressureSumCount,
       baroRawAltitude,
       baroAltitude,
       baroAltitudeRate,
+      kinematicsAngleX,
+      kinematicsAngleY,
+      kinematicsAngleZ,
+      q0,
+      q1,
+      q2,
+      q3,
+      meterPerSecSecX,
+      meterPerSecSecY,
+      meterPerSecSecZ,
+      altitude,
+      altitudeCorrection,
       zVelocity,
+      zAcceleration,
       estimatedZVelocity,
       rangeFinderRange,
       rangeFinderRate,
       altitudeHoldThrottleCorrection,
+      altitudeHoldThrottle,
       targetVerticalSpeed,
       altitudeToHoldTarget,
       altitudeHoldMode,
+      receiverCommandThrottle,
       receiverCommandAUX3,
       baroSmoothFactor,
       altitudeSpeedPID_P,
@@ -36,6 +52,7 @@ class DataLogger {
       altitudeThrottlePID_Pr,
       altitudeThrottlePID_Ir,
       altitudeThrottlePID_Dr,
+      accelOneG,
     };
 
     DataLogger();
@@ -50,6 +67,7 @@ class DataLogger {
     bool log(unsigned long timestamp, EventType type, unsigned short value);
     bool log(unsigned long timestamp, EventType type, unsigned char value);
     bool log(unsigned long timestamp, EventType type, float value);
+    bool log(unsigned long timestamp, EventType type, const char *s);
 
     bool read_next(char *buffer, int size);
 

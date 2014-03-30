@@ -29,6 +29,7 @@
 float accelScaleFactor[3] = {0.0,0.0,0.0};
 float runTimeAccelBias[3] = {0, 0, 0};
 float accelOneG = 0.0;
+float accelOneGZan = 9.780327;
 float meterPerSecSec[3] = {0.0,0.0,0.0};
 long accelSample[3] = {0,0,0};
 byte accelSampleCount = 0;
