@@ -33,6 +33,9 @@
 #define INVALID_THROTTLE_CORRECTION -1000
 #define ALTITUDE_BUMP_SPEED 0.01
 
+#ifndef MAX
+  #define MAX(A,B) ((A)>(B) ? (A) : (B))
+#endif
 
 
 /**
@@ -73,7 +76,6 @@ void processAltitudeHold()
     if (abs(altitudeHoldThrottle - receiverCommand[THROTTLE]) > altitudeHoldPanicStickMovement) {
       altitudeHoldMode = ALT_PANIC; // too rapid of stick movement so PANIC out of ALTHOLD
       altitudeHoldThrottleCorrection = 0;
-      logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
       logger.log(currentTime, DataLogger::altitudeHoldThrottleCorrection, altitudeHoldThrottleCorrection);
     }
     else {
@@ -101,6 +103,9 @@ void processAltitudeHold()
       #endif
     }
     throttle = altitudeHoldThrottle + altitudeHoldThrottleCorrection;
+
+    //  Increase throttle to compensate for pitch or roll up to 45 degrees.
+    throttle = throttle * (1.0 / MAX(0.707107, down[2]));
   }
   else {
     throttle = receiverCommand[THROTTLE];

@@ -277,11 +277,11 @@ void evaluateBaroAltitude() {
     float newBaroAltitude = filterSmooth(baroRawAltitude, baroAltitude, baroSmoothFactor);
     if (currentTime - baroAltitudeAsof > 0)
       baroAltitudeRate = (newBaroAltitude - baroAltitude) / (currentTime - baroAltitudeAsof) * 1000000.0;
-    logger.log(currentTime, DataLogger::baroAltitudeRate, baroAltitudeRate);
+    // logger.log(currentTime, DataLogger::baroAltitudeRate, baroAltitudeRate);
     baroAltitude = newBaroAltitude;
     baroAltitudeAsof = currentTime;
   }
-  logger.log(currentTime, DataLogger::baroAltitude, baroAltitude - baroGroundAltitude);
+  // logger.log(currentTime, DataLogger::baroAltitude, baroAltitude - baroGroundAltitude);
 
   rawPressureSum = 0.0;
   rawPressureSumCount = 0;
