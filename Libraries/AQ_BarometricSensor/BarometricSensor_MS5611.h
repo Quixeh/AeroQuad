@@ -286,7 +286,7 @@ void evaluateBaroAltitude() {
   rawPressureSum = 0.0;
   rawPressureSumCount = 0;
 
-#if 1
+#if 0
   // set ground altitude after a delay, so sensor has time to heat up
   const unsigned long updateDelayInSeconds = 10;
   if (!baroGroundUpdateDone && (micros()-baroStartTime) > updateDelayInSeconds*1000000) {

@@ -26,6 +26,7 @@ class DataLogger {
       meterPerSecSecZ,
       altitude,
       altitudeCorrection,
+      verticalSpeedCorrection,
       zVelocity,
       zAcceleration,
       estimatedZVelocity,
@@ -53,6 +54,7 @@ class DataLogger {
       altitudeThrottlePID_Ir,
       altitudeThrottlePID_Dr,
       accelOneG,
+      throttle,
     };
 
     DataLogger();

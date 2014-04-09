@@ -59,7 +59,38 @@ void processAltitudeHold()
     // logger.log(currentTime, DataLogger::altitudeSpeedPID_Pr, PIDComponents[0]);
     // logger.log(currentTime, DataLogger::altitudeSpeedPID_Ir, PIDComponents[1]);
 
-    targetVerticalSpeed = updatePIDAlternate(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX], NULL);
+    static float previousAltitudeToHoldTarget = 0.0;
+    const float dT = 1.0/50.0;
+    float altitudeToHoldTargetROC = (altitudeToHoldTarget - previousAltitudeToHoldTarget) / dT;
+    previousAltitudeToHoldTarget = altitudeToHoldTarget;
+    altitudeToHoldTargetROC = constrain(altitudeToHoldTargetROC, -1.0, 1.0);
+
+    float vDeadBand = 0.25;
+#if 1
+    float altitudeError = fabsf(altitudeToHoldTarget - altitude);
+    if (altitudeError > vDeadBand) {
+      const float a = 5.0; // Deceleration rate as we approach target altitude, m/s^2.
+      targetVerticalSpeed = a * sqrtf(2.0 * (altitudeError-vDeadBand) / a);
+      if (altitudeToHoldTarget < altitude)
+        targetVerticalSpeed = -targetVerticalSpeed;
+    } else {
+      targetVerticalSpeed = updatePIDAlternate(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX], NULL);
+    }
+    targetVerticalSpeed += altitudeToHoldTargetROC;
+#else
+    float altitudeError = fabsf(altitudeToHoldTarget - altitude);
+    float a = 5.0; // Deceleration rate as we approach target altitude, m/s^2.
+    if (altitudeError < vDeadBand)
+      a *= altitudeError / vDeadBand;
+    targetVerticalSpeed = a * sqrtf(2.0 * altitudeError / a);
+    if (altitudeToHoldTarget < altitude)
+      targetVerticalSpeed = -targetVerticalSpeed;
+    targetVerticalSpeed += altitudeToHoldTargetROC;
+#endif
+
+    const float vMax = 5.0; // Maximum target speed, m/s.
+    targetVerticalSpeed = constrain(targetVerticalSpeed, -vMax, vMax);
+
     logger.log(currentTime, DataLogger::targetVerticalSpeed, targetVerticalSpeed);
 
     // simulatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
@@ -106,6 +137,8 @@ void processAltitudeHold()
 
     //  Increase throttle to compensate for pitch or roll up to 45 degrees.
     throttle = throttle * (1.0 / MAX(0.707107, down[2]));
+
+    logger.log(currentTime, DataLogger::throttle, throttle);
   }
   else {
     throttle = receiverCommand[THROTTLE];

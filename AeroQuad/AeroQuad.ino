@@ -1456,7 +1456,12 @@ void process100HzTask() {
     altitudeCorrection = filterSmooth(getBaroAltitude() - altitudeUncorrected, altitudeCorrection, 0.0025);
     altitude = altitudeUncorrected + altitudeCorrection;
     logger.log(currentTime, DataLogger::altitude, altitude);
-    logger.log(currentTime, DataLogger::altitudeCorrection, altitudeCorrection);
+
+    if (frameCounter % TASK_10HZ == 0) {  //  10 Hz tasks
+      //  These aren't changing rapidly -- no need to log them too frequently.
+      logger.log(currentTime, DataLogger::altitudeCorrection, altitudeCorrection);
+      logger.log(currentTime, DataLogger::altitudeCorrection, verticalSpeedCorrection);
+    }
   #endif
 
   processFlightControl();

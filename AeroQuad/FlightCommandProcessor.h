@@ -67,7 +67,7 @@
           //  Initialize altitude hold using barometer, but only if we're not panicked.
           if (ALT_PANIC != altitudeHoldMode) {
             altitudeHoldMode = ALT_BARO;
-            altitudeToHoldTarget = 3.0 + getBaroAltitude();
+            altitudeToHoldTarget = 0.0 + getBaroAltitude();
             logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
             altitudeHoldThrottle = receiverCommand[THROTTLE];
             logger.log(currentTime, DataLogger::altitudeHoldThrottle, altitudeHoldThrottle);
@@ -108,6 +108,13 @@
       }
       logger.log(currentTime, DataLogger::altitudeHoldMode, altitudeHoldMode);
     }
+
+    //  Increase/decrease altitude target on rising/falling edge of AUX2.
+    if (receiverCommand[AUX2] > 1750 && previousAUX2 <= 1750)
+      altitudeToHoldTarget += 4.0;
+    else if (receiverCommand[AUX2] <= 1750 && previousAUX2 > 1750)
+      altitudeToHoldTarget -= 4.0;
+    previousAUX2 = receiverCommand[AUX2];
   }
 #endif
 
@@ -241,7 +248,7 @@ void processZeroThrottleFunctionFromReceiverCommand() {
     #endif  
 
     zeroIntegralError();
-
+    resetAltitude();
   }
   // Prevents accidental arming of motor output if no transmitter command received
   if (receiverCommand[ZAXIS] > MINCHECK) {

@@ -45,6 +45,7 @@ static const struct {
   TABENT(meterPerSecSecZ,                E_float ),
   TABENT(altitude,                       E_float ),
   TABENT(altitudeCorrection,             E_float ),
+  TABENT(verticalSpeedCorrection,        E_float ),
   TABENT(zVelocity,                      E_float ),
   TABENT(zAcceleration,                  E_float ),
   TABENT(estimatedZVelocity,             E_float ),
@@ -72,6 +73,7 @@ static const struct {
   TABENT(altitudeThrottlePID_Ir,         E_float ),
   TABENT(altitudeThrottlePID_Dr,         E_float ),
   TABENT(accelOneG,                      E_float ),
+  TABENT(throttle,                       E_float ),
 };
 #undef TABENT
 

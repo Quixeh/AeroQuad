@@ -49,6 +49,7 @@ float receiverOffset[MAX_NB_CHANNEL] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0}
 float receiverSmoothFactor[MAX_NB_CHANNEL] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 int channelCal;
 
+int previousAUX2 = 0;
 int previousAUX3 = 0;
 
 void initializeReceiverParam(int nbChannel = 6) {
