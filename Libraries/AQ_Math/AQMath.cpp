@@ -22,7 +22,7 @@
 
 
 // Low pass filter, kept as regular C function for speed
-float filterSmooth(float currentData, float previousData, float smoothFactor) 
+double filterSmooth(double currentData, double previousData, double smoothFactor) 
 {
   if (smoothFactor != 1.0) //only apply time compensated filter if smoothFactor is applied
   {

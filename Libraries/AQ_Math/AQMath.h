@@ -29,7 +29,7 @@
 #define MPS2_2_G(m) ((m) * 0.10197162)
 
 // Low pass filter, kept as regular C function for speed
-float filterSmooth(float currentData, float previousData, float smoothFactor);
+double filterSmooth(double currentData, double previousData, double smoothFactor);
 float filterSmoothWithTime(float currentData, float previousData, float smoothFactor, float dT_scaledAroundOne);
 
 // ***********************************************************************

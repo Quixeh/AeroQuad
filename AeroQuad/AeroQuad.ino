@@ -1460,7 +1460,7 @@ void process100HzTask() {
     if (frameCounter % TASK_10HZ == 0) {  //  10 Hz tasks
       //  These aren't changing rapidly -- no need to log them too frequently.
       logger.log(currentTime, DataLogger::altitudeCorrection, altitudeCorrection);
-      logger.log(currentTime, DataLogger::altitudeCorrection, verticalSpeedCorrection);
+      logger.log(currentTime, DataLogger::verticalSpeedCorrection, verticalSpeedCorrection);
     }
   #endif
 

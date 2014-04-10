@@ -65,8 +65,7 @@ void processAltitudeHold()
     previousAltitudeToHoldTarget = altitudeToHoldTarget;
     altitudeToHoldTargetROC = constrain(altitudeToHoldTargetROC, -1.0, 1.0);
 
-    float vDeadBand = 0.25;
-#if 1
+    float vDeadBand = 0.125;
     float altitudeError = fabsf(altitudeToHoldTarget - altitude);
     if (altitudeError > vDeadBand) {
       const float a = 5.0; // Deceleration rate as we approach target altitude, m/s^2.
@@ -77,16 +76,6 @@ void processAltitudeHold()
       targetVerticalSpeed = updatePIDAlternate(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX], NULL);
     }
     targetVerticalSpeed += altitudeToHoldTargetROC;
-#else
-    float altitudeError = fabsf(altitudeToHoldTarget - altitude);
-    float a = 5.0; // Deceleration rate as we approach target altitude, m/s^2.
-    if (altitudeError < vDeadBand)
-      a *= altitudeError / vDeadBand;
-    targetVerticalSpeed = a * sqrtf(2.0 * altitudeError / a);
-    if (altitudeToHoldTarget < altitude)
-      targetVerticalSpeed = -targetVerticalSpeed;
-    targetVerticalSpeed += altitudeToHoldTargetROC;
-#endif
 
     const float vMax = 5.0; // Maximum target speed, m/s.
     targetVerticalSpeed = constrain(targetVerticalSpeed, -vMax, vMax);
