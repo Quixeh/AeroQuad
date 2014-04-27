@@ -43,6 +43,7 @@ static const struct {
   TABENT(meterPerSecSecX,                E_float ),
   TABENT(meterPerSecSecY,                E_float ),
   TABENT(meterPerSecSecZ,                E_float ),
+  TABENT(meterPerSecSec,                 E_float ),
   TABENT(altitude,                       E_float ),
   TABENT(altitudeCorrection,             E_float ),
   TABENT(verticalSpeedCorrection,        E_float ),
@@ -220,6 +221,27 @@ bool DataLogger::log(unsigned long timestamp, EventType type, float value)
 
   // Does the type of value match what we're expecting to store?
   if (E_float != eventInfo[type].encoding) {
+    _log_error(type);
+    return false;
+  }
+
+  //  Store it.
+  return _mark_time(timestamp) && _put(type, &value, sizeof(value));
+}
+
+
+bool DataLogger::log(unsigned long timestamp, EventType type, double value)
+{
+  //  Is event type sane?
+  if (ARRAY_LEN(eventInfo) <= type) {
+    _log_error(type);
+    return false;
+  }
+
+  // Does the type of value match what we're expecting to store?
+  if (E_float == eventInfo[type].encoding)
+    return log(timestamp, type, (float) value);
+  else if (E_float != eventInfo[type].encoding) {
     _log_error(type);
     return false;
   }

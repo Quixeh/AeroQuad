@@ -347,7 +347,7 @@ void processFlightControl() {
     logger.log(currentTime, DataLogger::altitudeThrottlePID_P, PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].P);
     logger.log(currentTime, DataLogger::altitudeThrottlePID_I, PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].I);
     logger.log(currentTime, DataLogger::altitudeThrottlePID_D, PID[ALTITUDE_HOLD_THROTTLE_PID_IDX].D);
-    logger.log(currentTime, DataLogger::altitudeHoldThrottleSmoothingFactor, altitudeHoldThrottleSmoothingFactor);
+    // logger.log(currentTime, DataLogger::altitudeHoldThrottleSmoothingFactor, altitudeHoldThrottleSmoothingFactor);
     logger.log(currentTime, DataLogger::accelOneG, accelOneG);
     logger.log(currentTime, DataLogger::accelOneG, accelOneGZan);
 

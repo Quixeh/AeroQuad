@@ -1,0 +1,122 @@
+What Is This?
+------------
+
+This branch is a layman's exploration of an improved altitude hold for AQ.
+It's the actual code that I'm flying at the time of this commit.
+It's very similar to the code I was flying when I posted my flight video
+to Youtube earlier this month. (April 2014).
+
+This code works *only* for the AQ 32 (Baloo) flight control board.  Reasons
+why are:
+  - I've modified code for some of the devices on this board, but have not
+    made similar changes to drivers for other supported AQ hardware.
+  - Flight data logging allocates 64kB from main memory.
+
+
+How It Works
+------------
+
+Altitude hold here is implemented in two sets of code changes:
+ 1) Combined accelerometer and barometer data produce good estimates
+    for vertical position and vertical speed (h and h-dot).
+ 2) A compound control loop replaces the single PID controller in the
+    standard AQ code.
+
+The outer control loop sets a speed target, based on altitude error, that
+drives the quad toward the target height.  The inner control loop manipulates
+the throttle in order to attain the desired speed.
+
+The work of the inner loop is done by the throttle PID.  The outer loop has
+two modes based on a +/-0.125m deadband around the target altitude.  When
+the current altitude is inside the deadband, the speed PID sets target speed.
+Outside that band, target speed is set such that the quad will experience a
+5.0 m/s^2 deceleration as it approaches the edge of the deadband.  The speed
+is also constrained to be no more than 5 m/s.
+
+While simply hovering, we're usually within the deadband and the speed PID is
+in control.  Large perturbations or artificially induced step functions can
+kick us out of the deadband and engage the constant deceleration mode.
+
+Example: Assume the quad is hovering (speed = 0) but the target altitude
+is much (say, 10m) higher than the current altitude.
+1) With a 10m braking distance (at 5m/s^2) the outer loop commands a really
+   big positive speed.  The speed limiter limits this speed to 5m/s.  The
+   throttle PID maxes out the throttle.  This is the aceleration phase.
+2) The quad quickly reaches the commanded 5m/s rise rate.  The throttle PID
+   backs off the throttle to maintian 5m/s.  This is the coast phase.
+3) As the quad approaches the target altitude, the speed asked for by the
+   outer loop continues to drop, eventually falling below the 5m/s limit.
+   The throttle PID radically drops throttle meet the reduced speed.  The
+   command speed drops consistent (in theory) with a 5m/s^2 deceleration rate.
+   This is the braking phase.
+4) As the quad crosses into the deadband the speed PID takes control, gently
+   nudging the quad toward the target.  This is the hold phase.
+
+
+Tuning
+------
+
+Tuning happens through the AeroQuad's Configurator's Altitude Hold tab, and
+through constants embedded in the code.
+
+-- Via Configurator --
+
+The speed PID, which sets target speed within the deadband, is tuned via
+the Configurator's three Altitude PID values.  I use P=3, I=0, D=0.
+
+The throttle PID hijacks the Configurator's "Z Dampening" PIDs.  I use P=300,
+I=15, and D=1000.
+
+Note: When uploading Z dampening values other than 0, the Configurator will
+give you an error.  If you look at the communication log, you can see that
+the correct values were actually sent.  So, dismiss the error dialog, and,
+manually send a "W" to write the values in EEPROM.
+
+Min/Max Throttle Adjust still does what it used to do.  I use +/-500 to
+essentially allow the throttle PID to command as much throttle as it wants.
+
+The Altitude Smooth Factor does nothing.
+
+-- Via Code --
+
+Some constants in AltitudeControlProcessor.h might need to be tuned.
+
+const float vDeadBand = 0.125; // Half the deadband width, in m.
+  1/4m seems to be easily achievable.
+
+const float deceleration = 5.0; // Deceleration rate, in m/s^2.
+  This may be too aggressive.  If in doubt, reduce.
+
+const float vMax = 5.0; // Maximum target speed, m/s.
+
+const float c_factor = 0.8;
+  This is compensation for off-axis thrust. 0 disables while 1.0 fully
+  enables but may be too much because of nonlinear motor resonse.
+
+
+Operational Notes
+-----------------
+
+1. Very important: Calibrate your accelerometers.  I'm beginning to suspect
+   that even a modest temperature change is enough to change the accelerometer
+   biases (or something) so that altitude hold becomes unusable.
+
+2. Barometric altitude, estimated altitude, and vertical speed get reset
+   to 0 on arming.  Not that you're likely to notice.  (Standard AQ code
+   resets the barometer about 13s after power-up.)
+
+3. AUX1 enables altitude hold.
+
+4. If it's enabled, AUX2 adds (and subtracts) 4 meters to the target
+   altitude.  This feature is useful for testing response to large step
+   functions.  It's presently disabled in the code for safety, but trivial
+   to re-enable.
+
+5. The rising edge of AUX3 (re)starts data recording into a 64kB buffer
+   for later download.
+
+6. Sonar is probably broken.  Autolanding is intertwined with altutide hold.
+   It *might* still work, but it's completely untested.
+
+7. Finally, to compile, please remote the obvious #error directives
+   in AeroQuad.ino.  Good luck. :-)

@@ -187,18 +187,18 @@ void reportVehicleState();
   
   
   float verticalSpeedUncorrected = 0.0;  // Integrated acceleration in up direction.
-  float verticalSpeedCorrection = 0.0;  // Smoothed comparison of verticalSpeedUncorrected with rate of change of smoothed barometer.
+  double verticalSpeedCorrection = 0.0;  // Smoothed comparison of verticalSpeedUncorrected with rate of change of smoothed barometer.
   float verticalSpeed = 0.0;             //  Adjusted verticalSpeedUncorrected.
 
   float altitudeUncorrected = 0.0;
-  float altitudeCorrection = 0.0;
+  double altitudeCorrection = 0.0;
   float altitude = 0.0;
 
   float previousAltitude = 0.0;
   unsigned long previousAHTime = 0;
   float targetVerticalSpeed = 0.0;
   int altitudeHoldThrottleCorrection = 0;
-  float altitudeHoldThrottleSmoothingFactor = 0.20;
+  float altitudeHoldThrottleSmoothingFactor = 0.20;  // Unused.
 
   #if defined AltitudeHoldBaro || defined AltitudeHoldRangeFinder
     float altitudeToHoldTarget = 0.0;

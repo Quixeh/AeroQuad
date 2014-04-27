@@ -24,6 +24,7 @@ class DataLogger {
       meterPerSecSecX,
       meterPerSecSecY,
       meterPerSecSecZ,
+      meterPerSecSec,
       altitude,
       altitudeCorrection,
       verticalSpeedCorrection,
@@ -69,6 +70,7 @@ class DataLogger {
     bool log(unsigned long timestamp, EventType type, unsigned short value);
     bool log(unsigned long timestamp, EventType type, unsigned char value);
     bool log(unsigned long timestamp, EventType type, float value);
+    bool log(unsigned long timestamp, EventType type, double value);
     bool log(unsigned long timestamp, EventType type, const char *s);
 
     bool read_next(char *buffer, int size);

@@ -75,13 +75,13 @@ void computeAccelBias() {
   }
   accelSampleCount = 0;
 
-  accelOneGZan = sqrt(meterPerSecSec[XAXIS] * meterPerSecSec[XAXIS] + 
-                      meterPerSecSec[YAXIS] * meterPerSecSec[YAXIS] + 
+  accelOneGZan = sqrt(meterPerSecSec[XAXIS] * meterPerSecSec[XAXIS] +
+                      meterPerSecSec[YAXIS] * meterPerSecSec[YAXIS] +
                       meterPerSecSec[ZAXIS] * meterPerSecSec[ZAXIS]);
   runTimeAccelBias[XAXIS] = -meterPerSecSec[XAXIS];
   runTimeAccelBias[YAXIS] = -meterPerSecSec[YAXIS];
   // runTimeAccelBias[ZAXIS] = -9.8065 - meterPerSecSec[ZAXIS];
-  //  Ha!  One kg of force is 9.80665 N.  But average acceleratio at Earth's surface is 9.780327 m/s^2.
+  //  Ha!  One kg of force is 9.80665 N.  But average acceleration at Earth's surface is 9.780327 m/s^2.
   runTimeAccelBias[ZAXIS] = -9.780327 - meterPerSecSec[ZAXIS];
 
   accelOneG = abs(meterPerSecSec[ZAXIS] + runTimeAccelBias[ZAXIS]);

@@ -63,20 +63,26 @@ void processAltitudeHold()
     const float dT = 1.0/50.0;
     float altitudeToHoldTargetROC = (altitudeToHoldTarget - previousAltitudeToHoldTarget) / dT;
     previousAltitudeToHoldTarget = altitudeToHoldTarget;
-    altitudeToHoldTargetROC = constrain(altitudeToHoldTargetROC, -1.0, 1.0);
+    altitudeToHoldTargetROC = constrain(altitudeToHoldTargetROC, -3.0, 3.0);
 
-    float vDeadBand = 0.125;
+    const float vDeadBand = 0.125; // Half the deadband width, in m.
     float altitudeError = fabsf(altitudeToHoldTarget - altitude);
     if (altitudeError > vDeadBand) {
-      const float a = 5.0; // Deceleration rate as we approach target altitude, m/s^2.
-      targetVerticalSpeed = a * sqrtf(2.0 * (altitudeError-vDeadBand) / a);
+      //  Outside the deadband, set speed such that we experience a constant deceleration
+      //  as we approach the edge of the deadband, arriving at the deadband with a speed of 0.
+      const float deceleration = 5.0; // Deceleration rate, in m/s^2.
+      targetVerticalSpeed = deceleration * sqrtf(2.0 * (altitudeError-vDeadBand) / deceleration);
       if (altitudeToHoldTarget < altitude)
         targetVerticalSpeed = -targetVerticalSpeed;
     } else {
+      //  Inside the deadband, let the PID control speed target.
       targetVerticalSpeed = updatePIDAlternate(altitudeToHoldTarget, altitude, &PID[ALTITUDE_HOLD_SPEED_PID_IDX], NULL);
     }
+
+    //  If the target altitude is moving, add its rate of change to our target speed.
     targetVerticalSpeed += altitudeToHoldTargetROC;
 
+    //  Limit magnitude of target speed.
     const float vMax = 5.0; // Maximum target speed, m/s.
     targetVerticalSpeed = constrain(targetVerticalSpeed, -vMax, vMax);
 
@@ -85,6 +91,8 @@ void processAltitudeHold()
     // simulatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
     // simulatePID(targetVerticalSpeed, verticalSpeed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
 
+    // The throttle PID adjusts throttle correction to minimize error between target speed and estimated speed.
+    //
     // altitudeHoldThrottleCorrectionRaw = updatePID(targetVerticalSpeed, speed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX]);
     altitudeHoldThrottleCorrection = updatePIDAlternate(targetVerticalSpeed, verticalSpeed, &PID[ALTITUDE_HOLD_THROTTLE_PID_IDX], PIDComponents);
     altitudeHoldThrottleCorrection = constrain(altitudeHoldThrottleCorrection, minThrottleAdjust, maxThrottleAdjust);
@@ -93,6 +101,8 @@ void processAltitudeHold()
     logger.log(currentTime, DataLogger::altitudeThrottlePID_Dr, PIDComponents[2]);
     logger.log(currentTime, DataLogger::altitudeHoldThrottleCorrection, altitudeHoldThrottleCorrection);
 
+    //  Check for panic exit from altitude hold mode.
+    //
     if (abs(altitudeHoldThrottle - receiverCommand[THROTTLE]) > altitudeHoldPanicStickMovement) {
       altitudeHoldMode = ALT_PANIC; // too rapid of stick movement so PANIC out of ALTHOLD
       altitudeHoldThrottleCorrection = 0;
@@ -100,32 +110,39 @@ void processAltitudeHold()
     }
     else {
 
+#if 0
+      //  If stick is somewhere between altitudeHoldBump and altitudeHoldPanicStickMovement,
+      //  alter target altitude with a proportional speed.
+      //
       float altitudeBump = 0.0;
-      if (receiverCommand[THROTTLE] > (altitudeHoldThrottle + altitudeHoldBump))
-        altitudeBump = ALTITUDE_BUMP_SPEED;
-      else if (receiverCommand[THROTTLE] < (altitudeHoldThrottle - altitudeHoldBump))
-        altitudeBump = -ALTITUDE_BUMP_SPEED;
-
-      #if defined AltitudeHoldBaro
-        if (ALT_BARO == altitudeHoldMode) {
-          altitudeToHoldTarget += altitudeBump;
-          logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
-        }
-      #endif
-      #if defined AltitudeHoldRangeFinder
-        if (ALT_SONAR == altitudeHoldMode) {
-          float newalt = altitudeToHoldTarget + altitudeBump;
-          if (isOnRangerRange(newalt)) {
-            altitudeToHoldTarget = newalt;
-            logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
-          }
-        }
-      #endif
+      int throttleDisplacement = receiverCommand[THROTTLE] - altitudeHoldThrottle;
+      if (abs(throttleDisplacement) > altitudeHoldBump) {
+        altitudeBump = ALTITUDE_BUMP_SPEED * (abs(throttleDisplacement) - altitudeHoldBump) / (altitudeHoldPanicStickMovement - altitudeHoldBump);
+        if (throttleDisplacement < 0)
+          altitudeBump = -altitudeBump;
+        altitudeToHoldTarget += altitudeBump;
+        logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
+      }
+#else
+      //  Original AQ "altitude bump" behavior.
+      //
+      if (receiverCommand[THROTTLE] > (altitudeHoldThrottle + altitudeHoldBump)) {
+        altitudeToHoldTarget += ALTITUDE_BUMP_SPEED;
+        logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
+      }
+      else if (receiverCommand[THROTTLE] < (altitudeHoldThrottle - altitudeHoldBump)) {
+        altitudeToHoldTarget -= ALTITUDE_BUMP_SPEED;
+        logger.log(currentTime, DataLogger::altitudeToHoldTarget, altitudeToHoldTarget);
+      }
+#endif
     }
     throttle = altitudeHoldThrottle + altitudeHoldThrottleCorrection;
 
     //  Increase throttle to compensate for pitch or roll up to 45 degrees.
-    throttle = throttle * (1.0 / MAX(0.707107, down[2]));
+    //  In practice, this seems to be overcompensating, perhaps due to non-linear
+    //  motor response.  So tune this down (or up) with c_factor.
+    const float c_factor = 0.9;
+    throttle = throttle + throttle * (1.0 / MAX(0.707107, down[2]) - 1.0) * c_factor;
 
     logger.log(currentTime, DataLogger::throttle, throttle);
   }

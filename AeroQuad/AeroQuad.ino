@@ -1405,6 +1405,9 @@ void setup() {
   safetyCheck = 0;
 }
 
+#error ***********************************
+#error * Please read README.altitudehold *
+#error ***********************************
 
 /*******************************************************************
  * 100Hz task
@@ -1416,9 +1419,12 @@ void process100HzTask() {
 
   evaluateGyroRate();
   evaluateMetersPerSec();
-  // logger.log(currentTime, DataLogger::meterPerSecSecX, meterPerSecSec[XAXIS]);
-  // logger.log(currentTime, DataLogger::meterPerSecSecY, meterPerSecSec[YAXIS]);
-  // logger.log(currentTime, DataLogger::meterPerSecSecZ, meterPerSecSec[ZAXIS]);
+
+  logger.log(currentTime, DataLogger::meterPerSecSecX, meterPerSecSec[XAXIS]);
+  logger.log(currentTime, DataLogger::meterPerSecSecY, meterPerSecSec[YAXIS]);
+  logger.log(currentTime, DataLogger::meterPerSecSecZ, meterPerSecSec[ZAXIS]);
+  float accel = sqrtf(meterPerSecSec[XAXIS]*meterPerSecSec[XAXIS] + meterPerSecSec[YAXIS]*meterPerSecSec[YAXIS] + meterPerSecSec[ZAXIS]*meterPerSecSec[ZAXIS]);
+  logger.log(currentTime, DataLogger::meterPerSecSec, accel);
 
   for (int axis = XAXIS; axis <= ZAXIS; axis++) {
     filteredAccel[axis] = computeFourthOrder(meterPerSecSec[axis], &fourthOrder[axis]);
@@ -1447,13 +1453,15 @@ void process100HzTask() {
     verticalSpeedUncorrected += -verticalAcceleration * G_Dt;
 
     //  Use rate of change of barometer to correct long-term drift in the vertical speed estimate.
-    verticalSpeedCorrection = filterSmooth(baroAltitudeRate - verticalSpeedUncorrected, verticalSpeedCorrection, 0.0025);
+    const double verticalSpeedCorrectionFactor = 0.005;
+    verticalSpeedCorrection = filterSmooth(baroAltitudeRate - verticalSpeedUncorrected, verticalSpeedCorrection, verticalSpeedCorrectionFactor);
     verticalSpeed = verticalSpeedUncorrected + verticalSpeedCorrection;
     logger.log(currentTime, DataLogger::zAcceleration, -verticalAcceleration);
     logger.log(currentTime, DataLogger::zVelocity, verticalSpeed);
 
     altitudeUncorrected += verticalSpeed * G_Dt;
-    altitudeCorrection = filterSmooth(getBaroAltitude() - altitudeUncorrected, altitudeCorrection, 0.0025);
+    const double altitudeCorrectionFactor = 0.0005;
+    altitudeCorrection = filterSmooth(getBaroAltitude() - altitudeUncorrected, altitudeCorrection, altitudeCorrectionFactor);
     altitude = altitudeUncorrected + altitudeCorrection;
     logger.log(currentTime, DataLogger::altitude, altitude);
 
