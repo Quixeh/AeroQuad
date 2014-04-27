@@ -57,7 +57,8 @@ Tuning
 ------
 
 Tuning happens through the AeroQuad's Configurator's Altitude Hold tab, and
-through constants embedded in the code.
+through constants embedded in the code.  Values will be different, particularly
+PIDs, from those for vanilla AQ code.
 
 -- Via Configurator --
 
@@ -75,21 +76,24 @@ manually send a "W" to write the values in EEPROM.
 Min/Max Throttle Adjust still does what it used to do.  I use +/-500 to
 essentially allow the throttle PID to command as much throttle as it wants.
 
-The Altitude Smooth Factor does nothing.
+The Altitude Smooth Factor still smoothes barometric readings prior to
+OSD display and determining barometric rate-of-change used to correct h-dot.
+I use 0.20.
 
 -- Via Code --
 
 Some constants in AltitudeControlProcessor.h might need to be tuned.
 
 const float vDeadBand = 0.125; // Half the deadband width, in m.
-  1/4m seems to be easily achievable.
+  1/4m seems to be easily achievable.  This may be a bit aggressive.
 
 const float deceleration = 5.0; // Deceleration rate, in m/s^2.
-  This may be too aggressive.  If in doubt, reduce.
+  This may be too aggressive.  If in doubt, reduce.  On my quad, measured
+  deceleration during breaking is actually closer to 8m/s^2.
 
 const float vMax = 5.0; // Maximum target speed, m/s.
 
-const float c_factor = 0.8;
+const float c_factor = 0.9;
   This is compensation for off-axis thrust. 0 disables while 1.0 fully
   enables but may be too much because of nonlinear motor resonse.
 
